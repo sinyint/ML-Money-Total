@@ -1,0 +1,2642 @@
+<!doctype html> 
+<html lang="my"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>ငွေလွှဲ/ငွေစာရင်းချုပ်</title> 
+<!-- External JS Libraries --> 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script> 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script> 
+<style> 
+@import url('https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap'); 
+:root { 
+  --primary-color: #3b82f6; 
+  --glow-color: rgba(56, 189, 248, 0.3); 
+  --bg-color: #0b0f17; 
+  --card-bg: #121824; 
+  --text-main: #f8fafc; 
+  --border-color: #ffd700; 
+  --table-header-bg: #0f172a; 
+} 
+*, *::before, *::after { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+} 
+html, body { 
+  width: 100%; 
+  min-height: 100vh; 
+  background-color: var(--bg-color); 
+  color: var(--text-main); 
+  font-family: 'Padauk', 'Pyidaungsu', Arial, sans-serif; 
+} 
+body { 
+  padding: 12px; 
+  display: flex; 
+  justify-content: center; 
+  align-items: flex-start; 
+} 
+.sesame-box { 
+  display: inline-block; 
+  width: 3px; 
+  height: 4px; 
+  background-color: #38bdf8; 
+  border-radius: 50%; 
+  flex-shrink: 0; 
+} 
+.header-container { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+} 
+button, .btn-action, .btn-toggle-pin, .nav-arrow, .btn-delete-log, .btn-profit-modal, .btn-yellow, .submit-btn { 
+  opacity: 1; 
+  transition: all 0.3s ease-in-out; 
+  cursor: pointer; 
+} 
+button:hover, .btn-action:hover, .btn-toggle-pin:hover, .nav-arrow:hover, .submit-btn:hover { 
+  opacity: 0.9; 
+} 
+.container { 
+  width: 100%; 
+  max-width: 1200px; 
+  background-color: #0b0f17; 
+  border-radius: 12px; 
+  padding: 12px; 
+  border: 1.5px solid var(--border-color); 
+  position: relative; 
+  overflow: hidden; 
+} 
+.top-bar { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 12px; 
+  gap: 8px; 
+} 
+.header-title-wrap { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 6px; 
+  flex-grow: 1; 
+} 
+.header-title { 
+  font-size: 16px; 
+  font-weight: bold; 
+  text-align: center; 
+  color: #38bdf8; 
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4); 
+} 
+
+.btn-pin-change, .btn-profit-modal, .btn-delete-log, .btn-toggle-pin { 
+  background: transparent !important; 
+  border: none !important; 
+  color: transparent !important; 
+  font-size: 14px !important; 
+  opacity: 0 !important; 
+  cursor: pointer; 
+  padding: 4px; 
+  user-select: none; 
+} 
+.btn-pin-change:active, .btn-profit-modal:active, .btn-delete-log:active, .btn-toggle-pin:active { 
+  color: #ffd700 !important; 
+  opacity: 1 !important; 
+} 
+
+.theme-card { 
+  background: linear-gradient(135deg, #121824 0%, #172133 100%); 
+  border-radius: 10px; 
+  padding: 10px; 
+  margin-bottom: 12px; 
+  border: 1px solid rgba(56, 189, 248, 0.15); 
+  box-shadow: 0 0 15px var(--glow-color), inset 0 0 10px rgba(56, 189, 248, 0.08); 
+  transition: all 0.3s ease-in-out; 
+  overflow: hidden; 
+} 
+.dashboard-grid { 
+  display: grid; 
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 10px; 
+  padding: 4px; 
+  width: 100%; 
+} 
+.card-compact { 
+  background: linear-gradient(135deg, #121824 0%, #1a2333 100%); 
+  border-radius: 8px; 
+  padding: 10px 8px; 
+  text-align: center; 
+  border: 1px solid rgba(56, 189, 248, 0.12); 
+  overflow: hidden; 
+  user-select: none; 
+  min-height: 65px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  cursor: pointer; 
+} 
+.card-title { 
+  font-size: 11px; 
+  color: #93c5fd; 
+  margin-bottom: 4px; 
+  width: 100%; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+} 
+.card-value { 
+  font-size: 13px; 
+  font-weight: bold; 
+  color: #ffffff; 
+  width: 100%; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+} 
+.border-box-transfer { border: 1.5px solid #38bdf8 !important; } 
+.border-box-marlu { border: 1.5px solid #f87171 !important; } 
+.border-box-ac-out { border: 1.5px solid #fb923c !important; cursor: pointer; } 
+.border-box-home-bal { border: 1.5px solid #a855f7 !important; } 
+.border-box-report-new { border: 1.5px solid #ffd700 !important; cursor: pointer; } 
+.text-purple { color: #a855f7 !important; } 
+.text-in { color: #00e676; font-weight: 800; } 
+.text-out { color: #ff4d4d; font-weight: 800; } 
+.text-fee { color: #38bdf8; font-weight: 800; } 
+.text-home { color: #a855f7; font-weight: 900; } 
+.text-yellow { color: #ffd700 !important; font-weight: 800; } 
+.form-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+  gap: 10px; 
+} 
+.search-input-group { 
+  display: flex; 
+  gap: 6px; 
+  align-items: center; 
+  margin-bottom: 0;
+  background: transparent;
+  padding: 0;
+  border: none;
+} 
+.date-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+  background: rgba(56, 189, 248, 0.04);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+}
+.date-inputs-wrap {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+p, span, label { 
+  font-size: 12px; 
+  word-break: break-word; 
+  overflow-wrap: break-word; 
+} 
+input[type="text"], input[type="number"], input[type="password"], input[type="tel"], input[type="date"], select, .form-control { 
+  width: 100%; 
+  height: 36px; 
+  padding: 4px 8px; 
+  font-size: 12px; 
+  border-radius: 6px; 
+  border: 1px solid rgba(56, 189, 248, 0.2); 
+  background: linear-gradient(135deg, #0b0f17 0%, #101722 100%); 
+  color: #fff; 
+  outline: none; 
+  transition: border-color 0.3s; 
+  cursor: pointer;
+} 
+select.form-control {
+  font-size: 10px; 
+}
+.form-control:focus { 
+  border-color: #38bdf8; 
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4); 
+} 
+.btn-yellow, .btn-reset-filter, .btn-export-excel, .submit-btn { 
+  height: 38px; 
+  padding: 4px 14px; 
+  font-size: 12px; 
+  font-weight: bold; 
+  border-radius: 6px; 
+  border: none; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  white-space: nowrap; 
+} 
+.btn-yellow { 
+  background-color: #ffd700; 
+  color: #000; 
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3); 
+} 
+
+.btn-refresh-icon { 
+  background: rgba(2, 132, 199, 0.2); 
+  border: 1px solid rgba(56, 189, 248, 0.4); 
+  color: #38bdf8; 
+  font-size: 13px; 
+  width: 34px; 
+  height: 34px; 
+  border-radius: 6px; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  cursor: pointer; 
+  transition: all 0.2s; 
+  flex-shrink: 0; 
+} 
+.btn-refresh-icon:hover { 
+  background: rgba(2, 132, 199, 0.4); 
+  transform: rotate(45deg); 
+} 
+
+.form-group { 
+  margin-bottom: 6px; 
+  display: flex; 
+  flex-direction: column; 
+  width: 100%; 
+} 
+.form-group label { 
+  display: block; 
+  margin-bottom: 2px; 
+  color: #38bdf8; 
+  font-weight: bold; 
+} 
+.stacked-input-container { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+  width: 100%; 
+} 
+.box-in label { color: #00e676 !important; } 
+.box-in input, .input-in { 
+  border-color: #00e676 !important; 
+  background: linear-gradient(135deg, rgba(0, 230, 118, 0.05), rgba(0, 230, 118, 0.12)) !important; 
+  color: #ffffff !important; 
+} 
+.box-out label { color: #ff4d4d !important; } 
+.box-out input, .input-out { 
+  border-color: #ff4d4d !important; 
+  background: linear-gradient(135deg, rgba(255, 77, 77, 0.05), rgba(255, 77, 77, 0.12)) !important; 
+  color: #ffffff !important; 
+} 
+.debt-alert { 
+  display: none; 
+  padding: 8px; 
+  border-radius: 6px; 
+  font-size: 11px; 
+  font-weight: 700; 
+  margin-bottom: 6px; 
+  grid-column: 1 / -1; 
+  line-height: 1.5; 
+} 
+.debt-alert.has-debt { 
+  background-color: rgba(239, 68, 68, 0.2); 
+  color: #ff4d4d; 
+  border: 1px solid #ff4d4d; 
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.3); 
+} 
+.debt-alert.has-advance { 
+  background-color: rgba(34, 197, 94, 0.2); 
+  color: #00e676; 
+  border: 1px solid #00e676; 
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.3); 
+} 
+.debt-action-btns { 
+  display: flex; 
+  gap: 6px; 
+  margin-top: 6px; 
+} 
+.btn-quick-settle { 
+  background: #f59e0b; 
+  color: #000; 
+  border: none; 
+  padding: 4px 8px; 
+  border-radius: 4px; 
+  font-size: 10px; 
+  font-weight: bold; 
+  cursor: pointer; 
+} 
+.submit-btn { 
+  grid-column: 1 / -1; 
+  width: 100%; 
+  height: 38px; 
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); 
+  color: #fff; 
+  font-size: 13px; 
+  font-weight: 800; 
+  margin-top: 4px; 
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); 
+} 
+.city-summary-card { 
+  border: 1.5px dashed var(--border-color); 
+  border-radius: 8px; 
+  padding: 8px; 
+  margin-bottom: 10px; 
+} 
+.city-summary-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+  gap: 6px; 
+} 
+.city-box { 
+  background: linear-gradient(135deg, rgba(18, 24, 36, 0.9), rgba(26, 35, 51, 0.9)); 
+  border: 1px solid rgba(56, 189, 248, 0.15); 
+  border-radius: 6px; 
+  padding: 6px; 
+  font-size: 11px; 
+} 
+.city-box .city-name { 
+  font-weight: 800; 
+  color: #ffd700; 
+  border-bottom: 1px solid rgba(255,255,255,0.1); 
+  padding-bottom: 2px; 
+  margin-bottom: 4px; 
+} 
+.city-box .city-stat { 
+  display: flex; 
+  justify-content: space-between; 
+  margin-bottom: 2px; 
+} 
+.search-result-panel { 
+  margin-bottom: 10px; 
+  padding: 10px; 
+  background: linear-gradient(135deg, rgba(18, 24, 36, 0.98), rgba(24, 33, 49, 0.98)); 
+  border-radius: 10px; 
+  font-size: 11px; 
+  display: none; 
+  border: 1.5px solid #ffd700; 
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); 
+} 
+.history-card { 
+  background: linear-gradient(135deg, #121824 0%, #172133 100%); 
+  padding: 10px; 
+  border-radius: 10px; 
+  border: 1px solid rgba(56, 189, 248, 0.15); 
+  box-shadow: 0 0 15px var(--glow-color); 
+  overflow-x: auto; 
+  width: 100%; 
+} 
+.filter-header { 
+  display: flex; 
+  justify-content: flex-end; 
+  align-items: center; 
+  margin-bottom: 8px; 
+} 
+.btn-export-excel { 
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); 
+  color: white; 
+  font-size: 13px; 
+  font-weight: bold; 
+  padding: 8px 16px; 
+  border-radius: 8px; 
+  box-shadow: 0 0 10px rgba(22, 163, 74, 0.4); 
+  border: 1px solid #4ade80; 
+  cursor: pointer;
+} 
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 11px; 
+  min-width: 850px; 
+  border: 1px solid rgba(56, 189, 248, 0.15); 
+} 
+th, td { 
+  padding: 6px 4px; 
+  text-align: center; 
+  border-bottom: 1px solid rgba(56, 189, 248, 0.1); 
+  border-right: 1px solid rgba(56, 189, 248, 0.1); 
+} 
+th { 
+  background: var(--table-header-bg); 
+  color: #38bdf8; 
+  font-weight: 800; 
+} 
+tbody tr:nth-child(even) { background-color: rgba(56, 189, 248, 0.02); } 
+tbody tr.clickable-row { cursor: pointer; } 
+tbody tr.clickable-row:hover { background-color: rgba(56, 189, 248, 0.06) !important; } 
+.btn-action { 
+  padding: 2px 6px; 
+  border: none; 
+  border-radius: 4px; 
+  font-size: 10px; 
+  font-weight: 700; 
+} 
+.btn-edit { background-color: #fef3c7; color: #b45309; } 
+.btn-delete { background-color: #fee2e2; color: #b91c1c; } 
+.modal-overlay { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(11, 15, 23, 0.85); 
+  backdrop-filter: blur(5px); 
+  display: none; 
+  justify-content: center; 
+  align-items: center; 
+  z-index: 1000; 
+  padding: 10px; 
+} 
+.modal-content { 
+  background: linear-gradient(135deg, #121824 0%, #1a2333 100%); 
+  color: white; 
+  padding: 16px; 
+  border-radius: 12px; 
+  width: 90%; 
+  max-width: 450px; 
+  position: relative; 
+  border: 1px solid rgba(56, 189, 248, 0.2); 
+  box-shadow: 0 0 20px var(--glow-color); 
+} 
+.receipt-card-container { 
+  position: relative; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 100%; 
+  max-width: 400px; 
+} 
+.receipt-card-wrap { 
+  background: #ffffff; 
+  color: #0f172a; 
+  border-radius: 12px; 
+  width: 100%; 
+  max-width: 340px; 
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); 
+  overflow: hidden; 
+  display: flex; 
+  flex-direction: column; 
+} 
+.receipt-card { 
+  background: #ffffff; 
+  padding: 12px; 
+  border-radius: 6px; 
+  color: #0f172a; 
+} 
+.receipt-header { 
+  text-align: center; 
+  border-bottom: 1px dashed #cbd5e1; 
+  padding-bottom: 4px; 
+  margin-bottom: 6px; 
+} 
+.receipt-header h2 { 
+  margin: 0; 
+  font-size: 13px; 
+  color: #1e3a8a; 
+  font-weight: 800; 
+} 
+.receipt-header p { 
+  margin: 1px 0 0 0; 
+  font-size: 9px; 
+  color: #64748b; 
+} 
+.receipt-row { 
+  display: flex; 
+  justify-content: space-between; 
+  font-size: 10px; 
+  margin-bottom: 4px; 
+  padding: 2px 0; 
+  border-bottom: 1px solid #f1f5f9; 
+} 
+.receipt-row .label { 
+  color: #475569; 
+  font-weight: 600; 
+} 
+.receipt-row .val { 
+  font-weight: 800; 
+  color: #0f172a; 
+  text-align: right; 
+} 
+.modal-actions { 
+  display: flex; 
+  flex-direction: column;
+  gap: 6px; 
+  padding: 8px; 
+  background: #f8fafc; 
+  border-top: 1px solid #e2e8f0; 
+} 
+.btn-action-row {
+  display: flex;
+  gap: 6px;
+}
+.btn-copy-text, .btn-close-modal { 
+  flex: 1; 
+  color: white; 
+  border: none; 
+  padding: 8px; 
+  border-radius: 6px; 
+  font-weight: 700; 
+  font-size: 11px; 
+  cursor: pointer; 
+  text-align: center;
+} 
+.btn-copy-text { background: #0284c7; } 
+.btn-close-modal { background: #64748b; } 
+
+.audit-card-wrap { 
+  background: linear-gradient(135deg, #121824 0%, #1a2333 100%); 
+  border-radius: 12px; 
+  width: 100%; 
+  max-width: 480px; 
+  max-height: 85vh; 
+  display: flex; 
+  flex-direction: column; 
+  border: 1px solid rgba(56, 189, 248, 0.2); 
+  box-shadow: 0 0 20px var(--glow-color); 
+} 
+.audit-header { 
+  background: var(--table-header-bg); 
+  color: #38bdf8; 
+  padding: 8px 12px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+} 
+.audit-body { 
+  padding: 8px; 
+  overflow-y: auto; 
+  flex: 1; 
+} 
+.audit-item { 
+  border-left: 3px solid #cbd5e1; 
+  background: rgba(56, 189, 248, 0.03); 
+  padding: 6px; 
+  margin-bottom: 6px; 
+  border-radius: 0 6px 6px 0; 
+  font-size: 11px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+} 
+.profit-box {
+  background: linear-gradient(135deg, rgba(18, 24, 36, 0.95), rgba(24, 33, 49, 0.95));
+  border: 1.5px solid #38bdf8;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.profit-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+.profit-card-small {
+  background: rgba(56, 189, 248, 0.04);
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.12);
+}
+</style> 
+</head> 
+<body> 
+<div class="container" id="mainContainer"> 
+  <!-- Header Controls --> 
+  <div class="top-bar"> 
+    <div style="display: flex; align-items: center; gap: 4px;"> 
+      <button class="btn-delete-log" onclick="openAuditModal()" title="မှတ်တမ်းကြည့်ရန်">🗑</button> 
+      <button class="btn-toggle-pin" id="btnToggleCitySummary" onclick="toggleCitySummary(event)" title="မြို့အလိုက် စာရင်းကြည့်မည်">👁</button> 
+    </div>
+
+    <div class="header-title-wrap"> 
+      <div class="header-container"> 
+        <span class="sesame-box"></span> 
+        <span class="header-title">ငွေလွှဲ/ငွေစာရင်းချုပ်</span> 
+        <span class="sesame-box"></span> 
+      </div> 
+      <button class="btn-pin-change" onclick="openChangePinModal()" title="PIN နံပါတ်များ ပြောင်းရန်">🔑</button> 
+      <button class="btn-profit-modal" onclick="openProfitModal()" title="အမြတ်/အရှုံး စာရင်းကြည့်မည်">📈</button>
+    </div> 
+
+    <div></div>
+  </div> 
+
+  <!-- Dynamic Summary Dashboard Grid --> 
+  <div class="theme-card"> 
+    <div class="dashboard-grid" id="dashboardGrid"> 
+      <div class="card-compact border-box-report-new clickable" id="box-report-new" onclick="handleMlAcReportClick()"> 
+        <div class="card-title" style="color:#ffd700;">ML AC (SS)ပို့ရန်</div> 
+        <div class="card-value" id="todayReportCount" style="border:none; color:#ffd700; font-size:12px;">0 ခု စာရင်းရှိသည်</div> 
+      </div> 
+
+      <div class="card-compact border-box-transfer" id="box-transfer"> 
+        <div class="card-title">ငွေဝင်</div> 
+        <div class="card-value" id="todayTotalTransfer">0</div> 
+      </div> 
+
+      <div class="card-compact border-box-marlu" id="box-marlu"> 
+        <div class="card-title">မော်လူးထုတ်</div> 
+        <div class="card-value text-out" id="todayMarluWithdraw">0</div> 
+      </div> 
+
+      <div class="card-compact house-card-style clickable" id="box-home-expense" onclick="renderHomeExpenseDetailModal()" style="background: linear-gradient(145deg, #1f293d, #121824); border: 1.5px solid #fbbf24;"> 
+        <div class="card-title" style="color:#fbbf24;">အိမ်သုံးစရိတ်</div> 
+        <div class="card-value" id="todayHomeExpense" style="border:none; color:#fbbf24;">0</div> 
+      </div> 
+
+      <div class="card-compact border-box-ac-out clickable" id="box-ac-out" onclick="openSpecialReportModal('ac')"> 
+        <div class="card-title">အကြွေးလွှဲ</div> 
+        <div class="card-value" id="todayAcOut" style="border:none; color:#fb923c;">0</div> 
+      </div> 
+      <div class="card-compact clickable" id="box-advance" onclick="renderDetailModal('advance')" style="border: 1.5px solid #4ade80;"> 
+        <div class="card-title" style="color:#4ade80;">ကြိုဝင်/ပေးရန်ငွေ</div> 
+        <div class="card-value" style="color:#4ade80;" id="totalAdvances">0</div> 
+      </div> 
+      <div class="card-compact clickable" id="box-debt" onclick="renderDetailModal('debt')" style="border: 1.5px solid #f87171;"> 
+        <div class="card-title" style="color:#f87171;">ရရန်အကြွေး စုစုပေါင်း</div> 
+        <div class="card-value" style="color:#f87171;" id="totalDebts">0</div> 
+      </div> 
+      <div class="card-compact border-box-home-bal" id="box-home-bal"> 
+        <div class="card-title text-purple">အိမ်လက်ကျန်</div> 
+        <div class="card-value text-purple" id="currentHomeBalance" style="font-size: 15px;">0</div> 
+      </div> 
+    </div> 
+  </div> 
+
+  <div class="city-summary-card" id="citySummaryCard" style="display: none;"> 
+    <div id="citySummaryContent"> 
+      <div class="city-summary-grid" id="citySummaryGrid"></div> 
+    </div> 
+  </div> 
+
+  <!-- Transaction Form Inputs --> 
+  <div class="theme-card"> 
+    <input type="hidden" id="editIndex" value="-1"> 
+    <input type="hidden" id="autoDebtTransId" value=""> 
+    <div class="form-grid"> 
+      <div class="form-group" style="grid-column: 1 / -1;"> 
+        <label for="homeBalance">🔒 စတင် အိမ်လက်ကျန်ငွေ</label> 
+        <div style="display: flex; gap: 8px; align-items: center; position: relative;">
+          <input type="password" id="homeBalance" class="form-control" placeholder="0" inputmode="numeric" oninput="formatAmountInput(this)" onchange="handleHomeBalanceChange()" style="flex: 1; padding-right: 35px;"> 
+          <span onclick="toggleHomeBalanceVisibility()" title="ပေါ်/ဖျောက် မျက်လုံး" style="position: absolute; right: 50px; cursor: pointer; font-size: 14px; user-select: none;">👁</span>
+          <button type="button" class="btn-refresh-icon" onclick="resetForm()" title="ဖောင်အသစ်ပြန်စရန် / ရှင်းရန်">🔄</button>
+        </div>
+      </div> 
+
+      <!-- 🔍 လွှဲနံပါတ် သို့မဟုတ် အမည်ဖြင့် ရှာဖွေသည့် ဘောက်စ် -->
+      <div class="form-group" style="grid-column: 1 / -1; background: rgba(56, 189, 248, 0.04); padding: 8px; border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px;">
+        <label style="color: #38bdf8; font-weight: bold; margin-bottom: 4px;">🔍 လွှဲနံပါတ် (သို့) အမည်ဖြင့် ရှာရန်</label>
+        <div class="search-input-group">
+          <input type="text" id="globalSearchInput" class="form-control" placeholder="လွှဲနံပါတ် (သို့) အမည် ရိုက်ထည့်ပါ..." oninput="handleGlobalSearch(this.value)">
+          <button type="button" class="btn-yellow" onclick="clearGlobalSearch()" style="height: 34px;">ရှင်းမည်</button>
+        </div>
+      </div>
+
+      <!-- 🔍 ရှာတွေ့သော မှတ်တမ်းအသေးစိတ် သီးသန့်ပေါ်မည့် ကတ်ပြား -->
+      <div id="searchResultPanel" class="search-result-panel"></div>
+
+      <div class="form-group box-out" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(255, 193, 7, 0.04), rgba(255, 193, 7, 0.1)); padding: 8px; border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 8px;"> 
+        <label for="homeExpenseInput" style="color: #fbbf24 !important;">အိမ်သုံးစရိတ်</label> 
+        <input type="text" id="homeExpenseInput" class="form-control" placeholder="အိမ်သုံးစရိတ် ပမာဏရိုက်ရန်" inputmode="numeric" oninput="formatAmountInput(this); handleAmountInput('homeExpenseInput', this.value); recalculateLiveHomeBalance(); closeCitySummaryBox();" style="border-color: #fbbf24 !important; margin-bottom: 4px;"> 
+        <input type="text" id="homeExpenseRemark" class="form-control" placeholder="မှတ်ချက်" oninput="closeCitySummaryBox();" style="border-color: #fbbf24 !important;"> 
+      </div> 
+      <div class="form-group"> 
+        <label>လွှဲနံပါတ်</label> 
+        <div class="stacked-input-container"> 
+          <select id="transCategory" class="form-control" onchange="onTransCategoryChange(); closeCitySummaryBox();" style="border: 1.5px solid #38bdf8;"> 
+            <option value="">-- ရွေးချယ်ပါ --</option> 
+            <option value="MLAC">MLမှ AC</option> 
+            <option value="MLOTH">MLမှ အခြား</option> 
+            <option value="ACOLD">ငွေအကြွေးလွှဲ</option> 
+            <option value="OTH">အခြား</option> 
+            <option value="ADVOUT">ကြိုထုတ်ငွေ</option> 
+            <option value="LOANPAY">ချေးငွေ ပြန်ဆပ်</option> 
+          </select> 
+          <input type="text" id="transId" class="form-control" placeholder="လွှဲနံပါတ် (ဥပမာ - MLAC100)" oninput="checkDuplicateTransIdLive()" style="background-color: rgba(255,255,255,0.03);"> 
+        </div> 
+      </div> 
+      <div class="form-group" id="senderGroup"> 
+        <label for="senderName">လွှဲသူအမည်</label> 
+        <input type="text" id="senderName" class="form-control" placeholder="လွှဲသူအမည်" oninput="handleSenderNameInput(); closeCitySummaryBox();"> 
+      </div> 
+      
+      <div id="debtAlert" class="debt-alert"></div> 
+
+      <div class="form-group" id="receiverGroup"> 
+        <label for="receiverName">ထုတ်သူအမည်</label> 
+        <input type="text" id="receiverName" class="form-control" placeholder="ထုတ်သူအမည်" oninput="scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group" id="cityGroup"> 
+        <label for="targetCity">ထုတ်မည့်မြို့</label> 
+        <select id="targetCity" class="form-control" onchange="toggleCustomCityInput(); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+          <option value="">-- ရွေးချယ်ပါ --</option> 
+          <option value="မန္တလေး">မန္တလေး</option> 
+          <option value="မြစ်ကြီးနား">မြစ်ကြီးနား</option> 
+          <option value="ကသာ">ကသာ</option> 
+          <option value="ဗန်းမောက်">ဗန်းမောက်</option> 
+          <option value="မော်လူး">မော်လူး</option> 
+          <option value="အခြားမြို့">အခြားမြို့</option> 
+        </select> 
+        <input type="text" id="customCityNote" class="form-control" placeholder="မြို့အမည် ရိုက်ထည့်ပါ" style="display:none; margin-top: 4px;" oninput="scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group" id="marluWithdrawContainer" style="display: none;"> 
+        <label for="marluAmount" style="color: #ff4d4d;">📦 မော်လူး ထုတ်ငွေပမာဏ (ကျပ်)</label> 
+        <input type="text" id="marluAmount" class="form-control" placeholder="မော်လူး ထုတ်ငွေပမာဏ" inputmode="numeric" oninput="formatAmountInput(this); handleAmountInput('marluAmount', this.value); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group"> 
+        <label for="idType">အမျိုးအစား</label> 
+        <select id="idType" class="form-control" onchange="toggleCustomIdTypeInput(); handleIdTypeChange(); scrollToNextField(this); closeCitySummaryBox();"> 
+          <option value="">-- ရွေးချယ်ပါ --</option> 
+          <option value="KBZ Acc">KBZ Acc</option> 
+          <option value="K.P">K.P</option> 
+          <option value="Ph">Ph</option> 
+          <option value="NRC">NRC</option> 
+          <option value="အခြား">အခြား</option> 
+        </select> 
+        <input type="text" id="customIdTypeNote" class="form-control" placeholder="အခြား အမျိုးအစား" style="display:none; margin-top: 4px;" oninput="scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group"> 
+        <label for="idNumber">💳 အကောင့်နံပါတ်</label> 
+        <input type="text" id="idNumber" class="form-control" placeholder="အကောင့်နံပါတ်" onblur="validateAccountNumber()" oninput="handleAccountInput(this); scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      
+      <div class="form-group box-in"> 
+        <label for="mlAmount">ML ပေးငွေ</label> 
+        <input type="text" id="mlAmount" class="form-control" placeholder="0" inputmode="numeric" oninput="formatAmountInput(this); handleAmountInput('mlAmount', this.value); handleAcInputAutoFee(); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group box-out" id="acAmountContainer"> 
+        <label for="acAmount">အကြွေးလွှဲ အခြားမြို့ သို့</label> 
+        <input type="text" id="acAmount" class="form-control" placeholder="0" inputmode="numeric" oninput="formatAmountInput(this); handleAmountInput('acAmount', this.value); handleAcInputAutoFee(); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group box-in"> 
+        <label for="fee">လွှဲခပေးပြီး</label> 
+        <input type="text" id="fee" class="form-control" value="0" inputmode="numeric" oninput="formatAmountInput(this); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group"> 
+        <label for="adjType">ကြိုဝင်/ကြွေး စာရင်း</label> 
+        <select id="adjType" class="form-control" onchange="updateAdjBoxStyle(); handleAcInputAutoFee(); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+          <option value="none">-- ရွေးချယ်ပါ --</option> 
+          <option value="payDebt" class="opt-in">ကြွေးကျန်ဆပ် (ဝင်)</option> 
+          <option value="advIn" class="opt-in">ကြိုဝင်ငွေ (ဝင်)</option> 
+          <option value="advInReturn" class="opt-out">ကြိုဝင်ငွေ ပြန်ထုတ် (ထွက်)</option> 
+          <option value="advOut" class="opt-out">ကြိုထုတ်ငွေ (ထွက်)</option> 
+          <option value="advOutReturn" class="opt-in">ကြိုထုတ်ငွေ ပြန်ဆပ် (ဝင်)</option> 
+        </select> 
+      </div> 
+      <div class="form-group"> 
+        <label for="adjAmount">ကြိုဝင်/ကြွေး ပမာဏ</label> 
+        <input type="text" id="adjAmount" class="form-control" placeholder="0" inputmode="numeric" oninput="formatAmountInput(this); handleAmountInput('adjAmount', this.value); handleAcInputAutoFee(); closeCitySummaryBox();"> 
+      </div> 
+      <div class="form-group"> 
+        <label for="transRemark">မှတ်ချက်</label> 
+        <input type="text" id="transRemark" class="form-control" placeholder="မှတ်ချက်" oninput="scrollToNextField(this); closeCitySummaryBox();"> 
+      </div> 
+
+      <!-- အထွေထွေသုံးစရိတ် (ထွက်) -->
+      <div class="form-group box-out"> 
+        <label for="expenseCategory" class="text-out">🔻 အထွေထွေသုံးစရိတ် (ထွက်)</label> 
+        <select id="expenseCategory" class="form-control" onchange="toggleCustomExpenseInput(); scrollToNextField(this); closeCitySummaryBox();" style="margin-bottom: 4px;"> 
+          <option value="">-- ရွေးချယ်ရန် --</option> 
+          <option value="ပြဒါးခဲ ကောက်ငွေ">ပြဒါးခဲ ကောက်ငွေ</option> 
+          <option value="ရွှေထည် ကောက်ငွေ">ရွှေထည် ကောက်ငွေ</option> 
+          <option value="AC ဖြတ်စ">AC ဖြတ်စ</option> 
+          <option value="လွှဲခ ပြန်အမ်ပေးငွေ">လွှဲခ ပြန်အမ်ပေးငွေ</option> 
+        </select> 
+        <input type="text" id="expenseAmount" class="form-control" placeholder="သုံးစရိတ် ပမာဏ" inputmode="numeric" style="margin-bottom: 4px;" oninput="formatAmountInput(this); handleAmountInput('expenseAmount', this.value); handleAcInputAutoFee(); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+        <input type="text" id="expenseRemark" class="form-control" placeholder="မှတ်ချက်" oninput="closeCitySummaryBox();"> 
+      </div> 
+
+      <!-- အခြားဝင်ငွေ (ဝင်) -->
+      <div class="form-group box-in"> 
+        <label for="incomeCategory" class="text-in">🟢 အခြားဝင်ငွေ (ဝင်)</label> 
+        <select id="incomeCategory" class="form-control" onchange="toggleCustomIncomeInput(); scrollToNextField(this); closeCitySummaryBox();" style="margin-bottom: 4px;"> 
+          <option value="">-- ရွေးချယ်ရန် --</option> 
+          <option value="C မှဝင်ငွေ">C မှဝင်ငွေ</option> 
+          <option value="အခြားဝင်ငွေ">အခြားဝင်ငွေ</option> 
+        </select> 
+        <input type="text" id="customIncomeNote" class="form-control" placeholder="ဝင်ငွေ အကြောင်းအရာ" style="display:none; margin-bottom: 4px;" oninput="scrollToNextField(this); closeCitySummaryBox();"> 
+        <input type="text" id="incomeAmount" class="form-control" placeholder="ဝင်ငွေ ပမာဏ" inputmode="numeric" style="margin-bottom: 4px;" oninput="formatAmountInput(this); handleAmountInput('incomeAmount', this.value); handleAcInputAutoFee(); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
+        <input type="text" id="incomeRemark" class="form-control" placeholder="မှတ်ချက်" oninput="closeCitySummaryBox();"> 
+      </div> 
+
+      <button type="button" class="submit-btn" id="submitBtn" onclick="submitData()">💾 စာရင်းသွင်းမည်</button> 
+    </div> 
+  </div> 
+
+  <!-- History Table Section --> 
+  <div class="history-card"> 
+    <div class="filter-header"> 
+      <button type="button" class="btn-export-excel" onclick="copyCsvToClipboard()">📋 CSV Copy ကူးမည် (Backup)</button> 
+    </div> 
+    
+    <!-- 📅 အစနှင့်အဆုံး ရက်စွဲအလိုက် ရှာဖွေနိုင်သော Date Range Filter -->
+    <div class="date-filter-group">
+      <div class="date-inputs-wrap">
+        <div style="flex: 1; min-width: 130px;">
+          <label style="font-size: 10px; color: #38bdf8; display: block; margin-bottom: 2px;">📅 စတင်ရက်စွဲ (Start)</label>
+          <input type="date" id="startDateFilter" class="form-control" onchange="renderTable()" onclick="this.showPicker && this.showPicker()">
+        </div>
+        <div style="flex: 1; min-width: 130px;">
+          <label style="font-size: 10px; color: #38bdf8; display: block; margin-bottom: 2px;">📅 ပြီးဆုံးရက်စွဲ (End)</label>
+          <input type="date" id="endDateFilter" class="form-control" onchange="renderTable()" onclick="this.showPicker && this.showPicker()">
+        </div>
+      </div>
+    </div>
+
+    <table> 
+      <thead> 
+        <tr> 
+          <th>ရက်စွဲ/အချိန်</th> 
+          <th>လွှဲနံပါတ်</th> <th>လွှဲသူ</th> <th>ဖုန်း</th> <th>ထုတ်သူ</th> <th>ထုတ်မည့်မြို့</th> 
+          <th>အမျိုးအစား</th> <th>ML ပေးငွေ</th> <th>အကြွေးလွှဲ</th> <th>မှတ်ချက်</th> 
+          <th>လွှဲခ</th> <th>လက်ကျန်</th> <th>အိမ်လက်ကျန်</th> 
+          <th>လုပ်ဆောင်ချက်</th> 
+        </tr> 
+      </thead> 
+      <tbody id="historyTableBody"></tbody> 
+    </table> 
+  </div> 
+</div> 
+
+<!-- Modals Section --> 
+<div id="receiptModal" class="modal-overlay"> 
+  <div class="receipt-card-container"> 
+    <div class="receipt-card-wrap" id="receiptCardWrap"> 
+      <div id="receiptCard" class="receipt-card"> 
+        <div class="receipt-header"> 
+          <h2>🧾 ငွေလွှဲပြေစာ</h2> 
+          <p id="rcDate">-</p> 
+        </div> 
+        <div class="receipt-row" id="rcTransIdRow"> 
+          <span class="label">လွှဲနံပါတ်:</span><span class="val" id="rcTransId">-</span> 
+        </div> 
+        <div class="receipt-row" id="rcNameRow"> 
+          <span class="label">လွှဲသူ:</span><span class="val" id="rcName">-</span> 
+        </div> 
+        <div class="receipt-row" id="rcTypeRow"> 
+          <span class="label">အမျိုးအစား:</span><span class="val" id="rcType">-</span> 
+        </div> 
+        <div class="receipt-row" id="rcAmountRow"> 
+          <span class="label">ပမာဏ:</span><span class="val text-in" id="rcAmount">-</span> 
+        </div> 
+        <div class="receipt-row" id="rcExpenseRow" style="display: none;"> 
+          <span class="label">မှတ်ချက်:</span><span class="val text-out" id="rcExpense">-</span> 
+        </div> 
+        <div class="receipt-row" id="rcIncomeRow" style="display: none;"> 
+          <span class="label">မှတ်ချက်:</span><span class="val text-in" id="rcIncome">-</span> 
+        </div> 
+        <div class="receipt-row" id="rcFeeRow"> 
+          <span class="label">လွှဲခပေးပြီး:</span><span class="val text-fee" id="rcFee">0 ကျပ်</span> 
+        </div> 
+        <div class="receipt-row" id="rcNoteRow"> 
+          <span class="label">မှတ်ချက်:</span><span class="val" id="rcNote">-</span> 
+        </div> 
+        <div class="receipt-row" id="rcPersonBalRow"> 
+          <span class="label">လက်ကျန်:</span><span class="val" id="rcPersonBal">-</span> 
+        </div> 
+      </div> 
+      <div class="modal-actions"> 
+        <button class="btn-close-modal" onclick="closeReceiptModal()">ပိတ်မည်</button> 
+      </div> 
+    </div> 
+  </div> 
+</div> 
+
+<!-- 🔍 ML/AC သီးသန့် အသေးစိတ်အစီရင်ခံစာ Modal -->
+<div id="specialReportModal" class="modal-overlay"> 
+  <div class="receipt-card-container"> 
+    <div class="receipt-card-wrap" style="max-width: 360px;"> 
+      <div id="specialReportCard" class="receipt-card" style="max-height: 80vh; overflow-y: auto; background-color: #ffffff;"> 
+        <div class="receipt-header"> 
+          <h2 id="srTitle" style="color: #1e3a8a;">📱 ယနေ့ ငွေလွှဲစာရင်းများ (ML/AC)</h2> 
+          <div style="margin-top: 4px; display: flex; justify-content: center; align-items: center; gap: 4px;">
+            <label style="font-size: 9px; color: #475569; font-weight: bold;">📅 ရက်စွဲရွေးရန်:</label>
+            <input type="date" id="reportDateSelect" onchange="changeReportDate()" style="height: 24px; font-size: 10px; width: auto; padding: 2px 4px; color: #000; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;">
+          </div>
+        </div> 
+        <div id="srBodyContent" style="margin-top: 6px;"></div> 
+      </div> 
+      <div class="modal-actions"> 
+        <div class="btn-action-row">
+          <button class="btn-copy-text" onclick="copySpecialReportText()">📋 စာသား Copy ကူးမည်</button>
+        </div>
+        <button class="btn-close-modal" onclick="closeSpecialReportModal()">ပိတ်မည်</button> 
+      </div> 
+    </div> 
+  </div> 
+</div> 
+
+<div id="auditModal" class="modal-overlay"> 
+  <div class="audit-card-wrap"> 
+    <div class="audit-header"> 
+      <h3>📜 ပြင်ဆင်/ဖျက်ဆီးထားသော မှတ်တမ်းများ</h3> 
+      <button onclick="closeAuditModal()" style="background:none; border:none; color:white; font-size:14px;">✖</button> 
+    </div> 
+    <div class="audit-body" id="auditBody"></div> 
+    <div class="modal-actions"> 
+      <button class="btn-clear-audit" onclick="clearAllAuditLogs()">🗑️ အားလုံး ရှင်းလင်းမည်</button> 
+      <button class="btn-close-modal" onclick="closeAuditModal()">ပိတ်မည်</button> 
+    </div> 
+  </div> 
+</div> 
+
+<div id="detailsModal" class="modal-overlay"> 
+  <div class="audit-card-wrap"> 
+    <div class="audit-header"> 
+      <h3 id="detailsModalTitle">အသေးစိတ် စာရင်း</h3> 
+      <button onclick="closeDetailsModal()" style="background:none; border:none; color:white; font-size:14px;">✖</button> 
+    </div> 
+    <div class="audit-body" id="detailsModalBody"></div> 
+    <div class="modal-actions"> 
+      <button class="btn-close-modal" onclick="closeDetailsModal()">ပိတ်မည်</button> 
+    </div> 
+  </div> 
+</div> 
+
+<!-- 📈 လျှို့ဝှက် အမြတ်/အရှုံး စာရင်းချုပ် Dashboard -->
+<div id="profitModal" class="modal-overlay"> 
+  <div class="audit-card-wrap"> 
+    <div class="audit-header"> 
+      <h3>📈 အမြတ် / အရှုံး စာရင်းချုပ် Dashboard</h3> 
+      <button onclick="closeProfitModal()" style="background:none; border:none; color:white; font-size:14px;">✖</button> 
+    </div> 
+    <div class="audit-body" id="profitModalBody">
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px;">
+        <div class="profit-box" style="margin-bottom: 0; border-color: #38bdf8;">
+          <div style="font-size: 10px; color: #38bdf8;">ယနေ့ အမြတ်/အရှုံး သက်သက်</div>
+          <div id="todayNetProfit" style="font-size: 14px; font-weight: bold; margin-top: 2px;">0 ကျပ်</div>
+        </div>
+        <div class="profit-box" style="margin-bottom: 0; border-color: #ffd700;">
+          <div style="font-size: 10px; color: #ffd700;">စုစုပေါင်း အမြတ်/အရှုံး</div>
+          <div id="totalNetProfit" style="font-size: 14px; font-weight: bold; margin-top: 2px;">0 ကျပ်</div>
+        </div>
+      </div>
+
+      <!-- 🟢 မန္တလေးရွှေရောင်းငွေ (အဝင် သီးသန့်) ထည့်ရန် ဘောက်စ် -->
+      <div style="background: rgba(0, 230, 118, 0.05); border: 1.5px dashed #00e676; border-radius: 8px; padding: 8px; margin-bottom: 8px;">
+        <div style="font-size: 10px; color: #00e676; font-weight: bold; margin-bottom: 4px;">🟢 မန္တလေးရွှေရောင်းငွေ (အဝင် သီးသန့်)</div>
+        <input type="text" id="goldExtraInAmount" class="form-control" placeholder="ပမာဏထည့်ရန် (ဥပမာ - 500,000)" inputmode="numeric" oninput="formatAmountInput(this); calculateProfitAndLoss(); saveExtraProfitData();" style="margin-bottom: 4px; font-size: 11px; height: 30px; border-color: #00e676;">
+        <input type="text" id="goldExtraInRemark" class="form-control" placeholder="မှတ်ချက် (ဥပမာ - ရွှေရောင်းရငွေ အဝင်)" oninput="saveExtraProfitData();" style="font-size: 11px; height: 30px; border-color: #00e676;">
+      </div>
+
+      <div class="profit-stat-grid">
+        <div class="profit-card-small">
+          <div style="font-size: 10px; color: #38bdf8;">လွှဲခစုစုပေါင်း</div>
+          <div id="todayTotalFee" style="font-size: 11px; font-weight: bold; color: #38bdf8; margin-top: 2px;">0</div>
+        </div>
+        <div class="profit-card-small">
+          <div style="font-size: 10px; color: #00e676;">ဝင်ငွေ စုစုပေါင်း</div>
+          <div id="todayTotalIncome" style="font-size: 11px; font-weight: bold; color: #00e676; margin-top: 2px;">0</div>
+        </div>
+        <div class="profit-card-small" style="grid-column: span 2;">
+          <div style="font-size: 10px; color: #ff4d4d;">သုံးစရိတ်/အရှုံး စုစုပေါင်း (အိမ်သုံးစရိတ်အပါ)</div>
+          <div id="todayTotalExpense" style="font-size: 11px; font-weight: bold; color: #ff4d4d; margin-top: 2px;">0</div>
+        </div>
+      </div>
+    </div> 
+    <div class="modal-actions"> 
+      <button class="btn-close-modal" onclick="closeProfitModal()">ပိတ်မည်</button> 
+    </div> 
+  </div> 
+</div> 
+
+<!-- PIN Change Modal --> 
+<div id="changePinModal" class="modal-overlay"> 
+  <div class="modal-content" style="max-width: 320px;"> 
+    <h3 style="color: #38bdf8; text-align: center; margin-bottom: 10px;">🔑 PIN နံပါတ်များ စီမံရန်</h3> 
+    <div class="form-group"> 
+      <label for="pinSelectIndex">ပြင်ဆင်လိုသည့် PIN အမျိုးအစား</label> 
+      <select id="pinSelectIndex" class="form-control" onchange="onPinSelectChange()"> 
+        <option value="1">PIN 1 - အက်ပ်ဝင်ရန် / အဓိက</option> 
+        <option value="2">PIN 2 - မြို့အလိုက် စာရင်းကြည့်ရန်</option> 
+        <option value="3">PIN 3 - ပြင်ဆင်/ဖျက်ဆီး မှတ်တမ်းကြည့်ရန်</option> 
+        <option value="4">PIN 4 - အမြတ်/အရှုံး စာရင်းကြည့်ရန်</option> 
+      </select> 
+    </div> 
+    <div class="form-group"> 
+      <label for="oldPinInput">ရွေးချယ်ထားသော လက်ရှိ PIN</label> 
+      <input type="password" id="oldPinInput" class="form-control" placeholder="****"> 
+    </div> 
+    <div class="form-group"> 
+      <label for="newPinInput">PIN အသစ်</label> 
+      <input type="password" id="newPinInput" class="form-control" placeholder="****"> 
+    </div> 
+    <div class="form-group"> 
+      <label for="confirmPinInput">PIN အသစ် အတည်ပြုပါ</label> 
+      <input type="password" id="confirmPinInput" class="form-control" placeholder="****"> 
+    </div> 
+    <div class="modal-actions" style="background: transparent; padding: 4px 0 0 0; border: none; margin-top: 8px;"> 
+      <button class="btn-yellow" style="flex:1;" onclick="saveNewPin()">သိမ်းဆည်းမည်</button> 
+      <button class="btn-close-modal" style="flex:1;" onclick="closeChangePinModal()">မလုပ်တော့ပါ</button> 
+    </div> 
+  </div> 
+</div> 
+
+<!-- Daily Login PIN Verification Modal --> 
+<div id="dailyLoginPinModal" class="modal-overlay" style="display: flex;"> 
+  <div class="modal-content" style="max-width: 320px;"> 
+    <div style="text-align: center; font-size: 28px; margin-bottom: 8px;">🔓</div>
+    <div class="form-group"> 
+      <label for="dailyPinInput" style="text-align: center;">PIN 1 Code</label> 
+      <input type="password" id="dailyPinInput" class="form-control" placeholder="****" style="text-align: center; letter-spacing: 4px;" onkeydown="if(event.key === 'Enter') verifyDailyPin()"> 
+    </div> 
+    <div class="modal-actions" style="background: transparent; padding: 4px 0 0 0; border: none; margin-top: 10px;"> 
+      <button class="btn-yellow" style="width: 100%;" onclick="verifyDailyPin()">အတည်ပြုမည်</button> 
+    </div> 
+  </div> 
+</div> 
+
+<script> 
+let securityPins = {
+  1: "1234",
+  2: "2222",
+  3: "3333",
+  4: "4444"
+};
+
+function formatAmountInput(input) {
+  let value = input.value.replace(/,/g, '').replace(/[^0-9]/g, '');
+  if (value !== "") {
+    input.value = Number(value).toLocaleString();
+  } else {
+    input.value = "";
+  }
+}
+
+function parseFormattedNumber(val) {
+  if (!val) return 0;
+  return parseFloat(String(val).replace(/,/g, '')) || 0;
+}
+
+function closeCitySummaryBox() {
+  const card = document.getElementById('citySummaryCard');
+  if (card && card.style.display !== 'none') {
+    card.style.display = 'none';
+    isCitySummaryUnlocked = false;
+  }
+}
+
+document.addEventListener('click', function(e) {
+  const card = document.getElementById('citySummaryCard');
+  const btn = document.getElementById('btnToggleCitySummary');
+  if (card && card.style.display !== 'none') {
+    if (!card.contains(e.target) && e.target !== btn) {
+      closeCitySummaryBox();
+    }
+  }
+
+  const searchPanel = document.getElementById('searchResultPanel');
+  const searchInput = document.getElementById('globalSearchInput');
+  if (searchPanel && searchPanel.style.display !== 'none') {
+    if (!searchPanel.contains(e.target) && e.target !== searchInput) {
+      searchPanel.style.display = 'none';
+    }
+  }
+});
+
+function toggleHomeBalanceVisibility() {
+  const hbInput = document.getElementById('homeBalance');
+  if (hbInput.type === 'password') {
+    hbInput.type = 'text';
+  } else {
+    hbInput.type = 'password';
+  }
+}
+
+function scrollToNextField(element) { 
+  if (element) { 
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
+  } 
+} 
+
+const firebaseConfig = { 
+  apiKey: "AIzaSyDWZPyAcHQv4L-wPijUzrRJotkMMQ-ag", 
+  authDomain: "kln-project-145e4.firebaseapp.com", 
+  databaseURL: "https://kln-project-145e4-default-rtdb.firebaseio.com", 
+  projectId: "kln-project-145e4", 
+  storageBucket: "kln-project-145e4.appspot.com", 
+  messagingSenderId: "329033989828", 
+  appId: "1:329033989828:web:59f708ed7376a0b147d391", 
+  measurementId: "G-SGLQX3M79" 
+}; 
+firebase.initializeApp(firebaseConfig); 
+const db = firebase.database(); 
+
+let records = [], auditLogs = [], initialHomeBalance = 0, baseHomeBalance = 0; 
+let isCitySummaryUnlocked = false, currentDisplayList = [], currentReceiptIndex = -1; 
+
+window.onload = function() { 
+  const todayIso = getCurrentDateTime().isoDate;
+  document.getElementById('startDateFilter').value = todayIso;
+  document.getElementById('endDateFilter').value = todayIso;
+
+  db.ref('settings/security_pins').on('value', (snapshot) => { 
+    const val = snapshot.val(); 
+    if (val) { 
+      securityPins = { ...securityPins, ...val }; 
+    } else { 
+      db.ref('settings/security_pins').set(securityPins); 
+    } 
+    checkDailyLoginPinRequirement();
+  }); 
+
+  db.ref('transactions').on('value', (snapshot) => { 
+    const data = snapshot.val(); 
+    records = data ? Object.values(data) : []; 
+    records.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); 
+    renderTable(); 
+    renderCitySummary(); 
+    checkCustomerStatus(); 
+  }); 
+
+  db.ref('audit_logs').on('value', (snapshot) => { 
+    const data = snapshot.val(); 
+    auditLogs = data ? Object.values(data) : []; 
+    auditLogs.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); 
+    renderAuditLogs(); 
+  }); 
+
+  db.ref('settings/home_balance').on('value', (snapshot) => { 
+    const val = snapshot.val(); 
+    if(val !== null && val !== undefined) { 
+      initialHomeBalance = val; 
+    } 
+    document.getElementById('homeBalance').value = initialHomeBalance > 0 ? initialHomeBalance.toLocaleString() : ""; 
+    renderTable(); 
+  }); 
+
+  // Firebase မှ အမြတ်စာရင်းထဲက သီးသန့်အဝင်ငွေ ဒေတာဆွဲထုတ်ရန်
+  db.ref('settings/gold_extra_in').on('value', (snapshot) => {
+    const val = snapshot.val();
+    if (val) {
+      if (document.getElementById('goldExtraInAmount')) {
+        document.getElementById('goldExtraInAmount').value = val.amount ? Number(val.amount).toLocaleString() : "";
+      }
+      if (document.getElementById('goldExtraInRemark')) {
+        document.getElementById('goldExtraInRemark').value = val.remark || "";
+      }
+    }
+  });
+
+  setIdTypeValue(""); 
+  handleIdTypeChange(); 
+}; 
+
+function saveExtraProfitData() {
+  const amt = parseFormattedNumber(document.getElementById('goldExtraInAmount').value);
+  const remark = document.getElementById('goldExtraInRemark').value.trim();
+  db.ref('settings/gold_extra_in').set({ amount: amt, remark: remark });
+}
+
+function checkDailyLoginPinRequirement() {
+  const todayIso = getCurrentDateTime().isoDate;
+  const lastVerifiedDate = localStorage.getItem('last_verified_date');
+  const modal = document.getElementById('dailyLoginPinModal');
+  
+  if (lastVerifiedDate === todayIso) {
+    if (modal) modal.style.display = 'none';
+  } else {
+    if (modal) {
+      modal.style.display = 'flex';
+      document.getElementById('dailyPinInput').value = "";
+      document.getElementById('dailyPinInput').focus();
+    }
+  }
+}
+
+function verifyDailyPin() {
+  const enteredPin = document.getElementById('dailyPinInput').value.trim();
+  if (enteredPin === securityPins[1]) {
+    const todayIso = getCurrentDateTime().isoDate;
+    localStorage.setItem('last_verified_date', todayIso);
+    document.getElementById('dailyLoginPinModal').style.display = 'none';
+  } else {
+    alert("❌ PIN 1 နံပါတ် မှားယွင်းနေပါသည်။ ထပ်မံကြိုးစားပါ။");
+    document.getElementById('dailyPinInput').value = "";
+    document.getElementById('dailyPinInput').focus();
+  }
+}
+
+function openProfitModal() {
+  let pinInput = prompt("🔐 အမြတ်/အရှုံး စာရင်းကြည့်ရန် PIN 4 ထည့်ပါ:");
+  if (pinInput === securityPins[4]) {
+    calculateProfitAndLoss();
+    document.getElementById('profitModal').style.display = 'flex';
+  } else if (pinInput !== null) {
+    alert("❌ PIN 4 နံပါတ် မှားယွင်းနေပါသည်။");
+  }
+}
+
+function closeProfitModal() {
+  document.getElementById('profitModal').style.display = 'none';
+}
+
+function calculateProfitAndLoss() {
+  const todayIso = getCurrentDateTime().isoDate;
+  let todayFee = 0, todayIncome = 0, todayExpense = 0;
+  let totalFee = 0, totalIncome = 0, totalExpense = 0;
+
+  records.forEach(r => {
+    let fee = Number(r.fee) || 0;
+    let income = Number(r.incomeAmt) || 0;
+    let expense = (Number(r.expenseAmt) || 0) + (Number(r.homeExpense) || 0);
+
+    totalFee += fee;
+    totalIncome += income;
+    totalExpense += expense;
+
+    if (r.dateTime?.isoDate === todayIso) {
+      todayFee += fee;
+      todayIncome += income;
+      todayExpense += expense;
+    }
+  });
+
+  // သီးသန့်ထည့်ထားသော အဝင်ငွေ (မန္တလေးရွှေရောင်းငွေ) ကို ဝင်ငွေထဲ ပေါင်းထည့်တွက်ချက်ခြင်း
+  let extraInAmt = parseFormattedNumber(document.getElementById('goldExtraInAmount').value);
+  totalIncome += extraInAmt;
+  todayIncome += extraInAmt; 
+
+  let todayNet = (todayFee + todayIncome) - todayExpense;
+  let totalNet = (totalFee + totalIncome) - totalExpense;
+
+  const setProfitStyleWithDynamicLogo = (elemId, val) => {
+    const el = document.getElementById(elemId);
+    if (!el) return;
+    let logo = "";
+    if (val > 0) {
+      logo = "📈 ";
+      el.style.color = "#00e676";
+      el.innerText = `${logo}+${val.toLocaleString()} ကျပ်`;
+    } else if (val < 0) {
+      logo = "📉 ";
+      el.style.color = "#ff4d4d";
+      el.innerText = `${logo}-${Math.abs(val).toLocaleString()} ကျပ်`;
+    } else {
+      logo = "📊 ";
+      el.style.color = "#ffffff";
+      el.innerText = `${logo}0 ကျပ်`;
+    }
+  };
+
+  setProfitStyleWithDynamicLogo('todayNetProfit', todayNet);
+  setProfitStyleWithDynamicLogo('totalNetProfit', totalNet);
+
+  document.getElementById('todayTotalFee').innerText = `${todayFee.toLocaleString()} ကျပ်`;
+  document.getElementById('todayTotalIncome').innerText = `${todayIncome.toLocaleString()} ကျပ်`;
+  document.getElementById('todayTotalExpense').innerText = `${todayExpense.toLocaleString()} ကျပ်`;
+}
+
+function openChangePinModal() { 
+  document.getElementById('pinSelectIndex').value = "1";
+  document.getElementById('oldPinInput').value = ""; 
+  document.getElementById('newPinInput').value = ""; 
+  document.getElementById('confirmPinInput').value = ""; 
+  document.getElementById('changePinModal').style.display = 'flex'; 
+} 
+
+function closeChangePinModal() { 
+  document.getElementById('changePinModal').style.display = 'none'; 
+} 
+
+function onPinSelectChange() {
+  document.getElementById('oldPinInput').value = ""; 
+  document.getElementById('newPinInput').value = ""; 
+  document.getElementById('confirmPinInput').value = ""; 
+}
+
+function saveNewPin() { 
+  const pinIndex = document.getElementById('pinSelectIndex').value;
+  const oldPin = document.getElementById('oldPinInput').value.trim(); 
+  const newPin = document.getElementById('newPinInput').value.trim(); 
+  const confirmPin = document.getElementById('confirmPinInput').value.trim(); 
+  
+  const currentTargetPin = securityPins[pinIndex] || "1234";
+
+  if (oldPin !== currentTargetPin) { 
+    alert(`❌ ရွေးချယ်ထားသော PIN ${pinIndex} ၏ လက်ရှိ PIN နံပါတ် မှားယွင်းနေပါသည်။`); 
+    return; 
+  } 
+  if (!newPin || newPin.length < 4) { 
+    alert("⚠️ PIN နံပါတ်အသစ်သည် အနည်းဆုံး ဂဏန်း ၄ လုံး ရှိရပါမည်။"); 
+    return; 
+  } 
+  if (newPin !== confirmPin) { 
+    alert("❌ PIN နံပါတ်အသစ်နှစ်ခု တူညီမှု မရှိပါ။"); 
+    return; 
+  } 
+
+  securityPins[pinIndex] = newPin;
+  db.ref('settings/security_pins').set(securityPins).then(() => { 
+    alert(`✅ PIN ${pinIndex} အသစ်အား အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ။`); 
+    closeChangePinModal(); 
+  }).catch((error) => { 
+    alert("❌ အမှားအယွင်းရှိပါသည်: " + error.message); 
+  }); 
+} 
+
+function handleMlAcReportClick() {
+  openSpecialReportModal('ml');
+}
+
+function openSpecialReportModal(type) {
+  const modal = document.getElementById('specialReportModal');
+  const dateInput = document.getElementById('reportDateSelect');
+  
+  const todayIso = getCurrentDateTime().isoDate;
+  if (dateInput) {
+    dateInput.value = todayIso;
+  }
+
+  renderSpecialReportData(todayIso, type);
+  modal.style.display = 'flex';
+}
+
+function changeReportDate() {
+  const selectedDate = document.getElementById('reportDateSelect').value;
+  if (selectedDate) {
+    renderSpecialReportData(selectedDate, 'ml');
+  }
+}
+
+function renderSpecialReportData(targetIsoDate, type) {
+  const srTitle = document.getElementById('srTitle');
+  const srBodyContent = document.getElementById('srBodyContent');
+
+  let titleName = "";
+  let itemsHtml = "";
+  const filteredRecords = records.filter(r => r.dateTime?.isoDate === targetIsoDate);
+
+  if (type === 'ml') {
+    titleName = "📱 ငွေလွှဲစာရင်းများ (ML/AC)";
+    
+    let mlList = filteredRecords.filter(r => {
+      let cat = (r.transCategory || "").toUpperCase();
+      let tId = (r.transId || "").toUpperCase();
+      return cat === "MLAC" || tId.startsWith("MLAC");
+    });
+
+    if (mlList.length === 0) {
+      itemsHtml = `<div style="text-align: center; color: #64748b; font-size: 10px; padding: 10px;">ဤရက်စွဲတွင် MLAC မှတ်တမ်းများ မရှိသေးပါ။</div>`;
+    } else {
+      mlList.forEach(r => {
+        let amt = Number(r.ml) || Number(r.ac) || 0;
+        let city = r.targetCity || '-';
+        let typeName = r.idType || '-';
+        let idNum = r.idNumber || '-';
+        let amountColor = (Number(r.ac) || 0) > 0 ? '#ff4d4d' : '#00e676';
+        let signPrefix = (Number(r.ac) || 0) > 0 ? '-' : '+';
+        itemsHtml += `
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; margin-bottom: 6px; font-size: 10px; color: #0f172a; line-height: 1.4;">
+            <div>📌 <b>လွှဲနံပါတ်:</b> ${r.transId} | 👤 <b>လွှဲသူ:</b> ${r.sender || '-'}</div>
+            <div>📦 <b>ထုတ်သူ:</b> ${r.receiver || '-'} | 📍 <b>မြို့:</b> ${city}</div>
+            <div>💳 <b>အမျိုးအစား:</b> ${typeName} (${idNum})</div>
+            <div style="font-weight: 800; color: ${amountColor}; text-align: right; font-size: 11px;">ငွေပမာဏ: ${signPrefix}${amt.toLocaleString()} ကျပ်</div>
+          </div>`;
+      });
+    }
+  } else if (type === 'ac') {
+    titleName = "📤 အကြွေးလွှဲ (အခြားမြို့သို့) စာရင်းများ";
+    let acList = filteredRecords.filter(r => (Number(r.ac) || 0) > 0);
+    if (acList.length === 0) {
+      itemsHtml = `<div style="text-align: center; color: #64748b; font-size: 10px; padding: 10px;">ဤရက်စွဲတွင် အကြွေးလွှဲ မှတ်တမ်းများ မရှိသေးပါ။</div>`;
+    } else {
+      acList.forEach(r => {
+        let amt = Number(r.ac) || 0;
+        let city = r.targetCity || '-';
+        let typeName = r.idType || '-';
+        let idNum = r.idNumber || '-';
+        itemsHtml += `
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; margin-bottom: 6px; font-size: 10px; color: #0f172a; line-height: 1.4;">
+            <div>📌 <b>လွှဲနံပါတ်:</b> ${r.transId} | 👤 <b>လွှဲသူ:</b> ${r.sender || '-'}</div>
+            <div>📦 <b>ထုတ်သူ:</b> ${r.receiver || '-'} | 📍 <b>မြို့:</b> ${city}</div>
+            <div>💳 <b>အမျိုးအစား:</b> ${typeName} (${idNum})</div>
+            <div style="font-weight: 800; color: #ff4d4d; text-align: right; font-size: 11px;">-${amt.toLocaleString()} ကျပ်</div>
+          </div>`;
+      });
+    }
+  }
+
+  srTitle.innerText = titleName;
+  srBodyContent.innerHTML = itemsHtml;
+}
+
+function copySpecialReportText() {
+  const startDate = document.getElementById('startDateFilter').value;
+  const endDate = document.getElementById('endDateFilter').value;
+  
+  const filteredRecords = records.filter(r => {
+    let rDate = r.dateTime?.isoDate;
+    if (!rDate) return false;
+    
+    let cat = (r.transCategory || "").toUpperCase();
+    let tId = (r.transId || "").toUpperCase();
+    if (cat !== "MLAC" && !tId.startsWith("MLAC")) return false;
+
+    if (startDate && endDate) return rDate >= startDate && rDate <= endDate;
+    if (startDate) return rDate >= startDate;
+    if (endDate) return rDate <= endDate;
+    return true;
+  });
+  
+  if (filteredRecords.length === 0) {
+    alert("⚠ ကူးယူရန် MLAC မှတ်တမ်းများ မရှိပါ။");
+    return;
+  }
+
+  let textToCopy = `📌 ငွေလွှဲ/ငွေစာရင်းချုပ် (MLAC) အစီရင်ခံစာ\n📅 ကာလ - ${startDate || 'အစ'} မှ ${endDate || 'အဆုံး'} ထိ\n==========================\n\n`;
+  
+  filteredRecords.forEach((r, index) => {
+    let amt = Number(r.ml) || Number(r.ac) || 0;
+    let city = r.targetCity || '-';
+    let typeName = r.idType || '-';
+    let idNum = r.idNumber || '-';
+    let signPrefix = (Number(r.ac) || 0) > 0 ? '-' : '+';
+    let amtText = `${signPrefix}${amt.toLocaleString()} ကျပ်`;
+    
+    textToCopy += `${index + 1}. လွှဲနံပါတ်: ${r.transId} (${r.dateTime?.fullStr || ''})\n`;
+    textToCopy += `• လွှဲသူ: ${r.sender || '-'}\n`;
+    textToCopy += `• ထုတ်သူ: ${r.receiver || '-'}\n`;
+    textToCopy += `• မြို့: ${city}\n`;
+    textToCopy += `• အမျိုးအစား: ${typeName} (${idNum})\n`;
+    textToCopy += `• ငွေပမာဏ: ${amtText}\n`;
+    textToCopy += `-------------------------------\n\n`;
+  });
+
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    alert("✅ ငွေလွှဲစာရင်းများကို Viber တွင် အဆင်ပြေပြေ ကူးယူပြီးပါပြီ။ Paste နှိပ်၍ ပို့နိုင်ပါပြီ။");
+  }).catch(err => {
+    alert("❌ စာသားကူးယူရာတွင် အမှားအယွင်းရှိပါသည်: " + err.message);
+  });
+}
+
+function closeSpecialReportModal() {
+  document.getElementById('specialReportModal').style.display = 'none';
+}
+
+function updateReceiptModalContent() { 
+  if (!currentDisplayList.length || currentReceiptIndex < 0) return; 
+  const data = currentDisplayList[currentReceiptIndex]; 
+  if (!data) return; 
+  
+  const setText = (id, value) => { 
+    const el = document.getElementById(id); 
+    if (el) el.innerText = value ?? '-'; 
+  }; 
+  
+  setText('rcTransId', data.transId); 
+  setText('rcDate', data.dateTime ? data.dateTime.fullStr : '-'); 
+  setText('rcName', data.sender || data.name || '-'); 
+  
+  let typeStr = data.idType || data.type || '-';
+  if (data.idNumber) typeStr += ` (${data.idNumber})`;
+  setText('rcType', typeStr); 
+
+  const totalAmt = Number(data.ml || data.ac || data.adjAmount || data.marluAmt || data.homeExpense || data.expenseAmt || data.incomeAmt) || 0; 
+  let amountSign = (Number(data.ac) || 0) > 0 ? '-' : '+';
+  let amountColorClass = (Number(data.ac) || 0) > 0 ? 'text-out' : 'text-in';
+  const amtEl = document.getElementById('rcAmount');
+  if (amtEl) {
+    amtEl.className = `val ${amountColorClass}`;
+    amtEl.innerText = `${amountSign}${totalAmt.toLocaleString()} ကျပ်`;
+  }
+  
+  const rcExpenseRow = document.getElementById('rcExpenseRow'); 
+  if ((data.expenseAmt && Number(data.expenseAmt) > 0) || (data.homeExpense && Number(data.homeExpense) > 0)) { 
+    let expText = ""; 
+    if (data.expenseAmt && Number(data.expenseAmt) > 0) { 
+      const expTitle = data.expenseName ? `[${data.expenseName}] ` : ''; 
+      const expRemarkText = data.expenseRemark ? ` (${data.expenseRemark})` : ''; 
+      expText += `${expTitle}${expRemarkText} -${Number(data.expenseAmt).toLocaleString()} ကျပ် `; 
+    } 
+    if (data.homeExpense && Number(data.homeExpense) > 0) { 
+      const homeExpRemarkText = data.homeExpenseRemark ? ` (${data.homeExpenseRemark})` : ''; 
+      expText += `[အိမ်သုံးစရိတ်${homeExpRemarkText}] -${Number(data.homeExpense).toLocaleString()} ကျပ်`; 
+    } 
+    setText('rcExpense', expText); 
+    if (rcExpenseRow) rcExpenseRow.style.display = 'flex'; 
+  } else { 
+    if (rcExpenseRow) rcExpenseRow.style.display = 'none'; 
+  } 
+
+  const rcIncomeRow = document.getElementById('rcIncomeRow'); 
+  if (data.incomeAmt && Number(data.incomeAmt) > 0) { 
+    const incTitle = data.incomeName ? `[${data.incomeName}] ` : ''; 
+    const incRemarkText = data.incomeRemark ? ` (${data.incomeRemark})` : ''; 
+    setText('rcIncome', `${incTitle}${incRemarkText} +${Number(data.incomeAmt).toLocaleString()} ကျပ်`); 
+    if (rcIncomeRow) rcIncomeRow.style.display = 'flex'; 
+  } else { 
+    if (rcIncomeRow) rcIncomeRow.style.display = 'none'; 
+  } 
+
+  const feeAmt = Number(data.fee) || 0; 
+  setText('rcFee', `${feeAmt.toLocaleString()} ကျပ်`); 
+
+  let noteText = data.transRemark || data.note || '-'; 
+  if (data.adjLabel) noteText = `[${data.adjLabel}] ${noteText !== '-' ? noteText : ''}`; 
+  setText('rcNote', noteText); 
+
+  const pBal = Number(data.calculatedPerson ?? data.personBal) || 0; 
+  let personText = '0 ကျပ်'; 
+  if (pBal > 0) personText = `ရရန်အကြွေးကျန် ${pBal.toLocaleString()} ကျပ်`; 
+  else if (pBal < 0) personText = `ကြိုဝင်ငွေ/ပိုငွေ ${Math.abs(pBal).toLocaleString()} ကျပ်`; 
+  setText('rcPersonBal', personText); 
+} 
+
+function closeReceiptModal() { 
+  document.getElementById('receiptModal').style.display = 'none'; 
+} 
+
+function handleAmountInput(selectedField, value) { 
+  const fields = ['mlAmount', 'acAmount', 'expenseAmount', 'incomeAmount', 'adjAmount', 'marluAmount', 'homeExpenseInput']; 
+  const rawVal = parseFormattedNumber(value);
+  fields.forEach(field => { 
+    const inputElement = document.getElementById(field); 
+    if (inputElement) { 
+      if (field !== selectedField && String(value).trim() !== "" && rawVal > 0 && field !== 'homeExpenseInput' && selectedField !== 'homeExpenseInput' && field !== 'expenseAmount' && field !== 'incomeAmount' && selectedField !== 'expenseAmount' && selectedField !== 'incomeAmount') { 
+        inputElement.value = ""; 
+        inputElement.disabled = true; 
+      } else if (String(value).trim() === "" || rawVal === 0) { 
+        inputElement.disabled = false; 
+      } 
+    } 
+  }); 
+} 
+
+function validateFormInputs() { 
+  const amountFields = ['mlAmount', 'acAmount', 'expenseAmount', 'incomeAmount', 'adjAmount', 'marluAmount', 'homeExpenseInput']; 
+  const filledCount = amountFields.filter(id => parseFormattedNumber(document.getElementById(id).value) > 0).length; 
+  if (filledCount > 1) { 
+    alert("လွှဲနံပါတ်တစ်ခုလျှင် ငွေအမျိုးအစား တစ်ခုတည်းသာ ထည့်သွင်းခွင့်ရှိပါသည်။"); 
+    return false; 
+  } 
+  return true; 
+} 
+
+function handleIdTypeChange() { 
+  const type = document.getElementById('idType').value; 
+  const idInput = document.getElementById('idNumber'); 
+  if (type === "KBZ Acc") idInput.setAttribute('maxlength', '21'); 
+  else idInput.removeAttribute('maxlength'); 
+  handleAccountInput(idInput); 
+} 
+
+function handleAccountInput(input) { 
+  if (document.getElementById('idType').value === "KBZ Acc") { 
+    let digitsOnly = input.value.replace(/[^0-9]/g, '').slice(0, 17); 
+    input.value = digitsOnly.match(/.{1,4}/g)?.join(' ') || ''; 
+  } 
+} 
+
+function validateAccountNumber() { 
+  const idInput = document.getElementById('idNumber'); 
+  const digitsOnly = idInput.value.replace(/\s+/g, ''); 
+  if (document.getElementById('idType').value === "KBZ Acc" && digitsOnly.length > 0 && digitsOnly.length < 17) { 
+    alert("ဂဏန်းထပ်ထဲ့ပေးပါရန်"); 
+  } 
+} 
+
+function handleAcInputAutoFee() { 
+  const mlVal = parseFormattedNumber(document.getElementById('mlAmount').value); 
+  const expenseVal = parseFormattedNumber(document.getElementById('expenseAmount').value); 
+  const incomeVal = parseFormattedNumber(document.getElementById('incomeAmount').value); 
+  const adjVal = parseFormattedNumber(document.getElementById('adjAmount').value); 
+  let feeField = document.getElementById('fee');
+  let feeVal = (mlVal > 0 && expenseVal === 0 && incomeVal === 0 && adjVal === 0) ? 1000 : 0; 
+  feeField.value = feeVal > 0 ? feeVal.toLocaleString() : "0";
+  recalculateLiveHomeBalance(); 
+} 
+
+function handleSenderNameInput() { 
+  checkCustomerStatus(); 
+  recalculateLiveHomeBalance(); 
+} 
+
+function recalculateLiveHomeBalance() { 
+  const ml = parseFormattedNumber(document.getElementById('mlAmount').value); 
+  const fee = parseFormattedNumber(document.getElementById('fee').value); 
+  const targetCity = getTargetCityValue(); 
+  const marluAmt = targetCity === "မော်လူး" ? parseFormattedNumber(document.getElementById('marluAmount').value) : 0; 
+  const adjType = document.getElementById('adjType').value; 
+  const adjAmount = parseFormattedNumber(document.getElementById('adjAmount').value); 
+  let advIn = 0, advOut = 0; 
+  if (["payDebt", "advIn", "advOutReturn"].includes(adjType)) advIn = adjAmount; 
+  else if (["advInReturn", "advOut"].includes(adjType)) advOut = adjAmount; 
+  const expenseAmt = parseFormattedNumber(document.getElementById('expenseAmount').value); 
+  const incomeAmt = parseFormattedNumber(document.getElementById('incomeAmount').value); 
+  const homeExpense = parseFormattedNumber(document.getElementById('homeExpenseInput').value); 
+  const totalIn = ml + advIn + incomeAmt; 
+  const totalOut = advOut + expenseAmt + marluAmt + homeExpense; 
+  const editIndex = parseInt(document.getElementById('editIndex').value); 
+  let currentCalculatedBase = baseHomeBalance; 
+  if (editIndex >= 0 && records[editIndex]) { 
+    const oldRec = records[editIndex]; 
+    let oldAdvIn = ["payDebt", "advIn", "advOutReturn"].includes(oldRec.adjType) ? (oldRec.adjAmount || 0) : 0; 
+    let oldAdvOut = ["advInReturn", "advOut"].includes(oldRec.adjType) ? (oldRec.adjAmount || 0) : 0; 
+    const oldIn = (oldRec.ml || 0) + oldAdvIn + (oldRec.incomeAmt || 0); 
+    const oldOut = oldAdvOut + (oldRec.expenseAmt || 0) + (oldRec.marluAmt || 0) + (oldRec.homeExpense || 0); 
+    currentCalculatedBase -= (oldIn + (oldRec.fee || 0) - oldOut); 
+  } 
+  document.getElementById('currentHomeBalance').innerText = (currentCalculatedBase + totalIn + fee - totalOut).toLocaleString(); 
+} 
+
+function logAudit(type, oldRecord, newRecord = null) { 
+  const now = getCurrentDateTime().fullStr; 
+  const logId = 'log_' + Date.now(); 
+  db.ref('audit_logs/' + logId).set({ id: logId, type, time: now, timestamp: Date.now(), old: oldRecord, new: newRecord }); 
+} 
+
+function openAuditModal() { 
+  let pinInput = prompt("PIN 3 ထည့်ပါ:");
+  if (pinInput === securityPins[3]) { 
+    renderAuditLogs(); 
+    document.getElementById('auditModal').style.display = 'flex'; 
+  } else if (pinInput !== null) { 
+    alert("❌ PIN 3 နံပါတ် မှားယွင်းနေပါသည်။"); 
+  } 
+} 
+
+function closeAuditModal() { 
+  document.getElementById('auditModal').style.display = 'none'; 
+} 
+
+function renderDetailModal(type) { 
+  const body = document.getElementById('detailsModalBody'); 
+  const title = document.getElementById('detailsModalTitle'); 
+  body.innerHTML = ""; 
+  let hasData = false; 
+  const balances = calculateBalances(); 
+  const isDebt = type === 'debt'; 
+  title.innerText = isDebt ? "🔴 ရရန်အကြွေး စုစုပေါင်း အသေးစိတ်" : "🟢 ပေးရန်ပိုငွေ/ကြိုတင်ဝင် အသေးစိတ်"; 
+  title.style.color = isDebt ? "#f87171" : "#4ade80"; 
+  let sortedNames = Object.keys(balances).sort((a, b) => a.localeCompare(b, 'my')); 
+  
+  let customerDetailsList = [];
+  sortedNames.forEach(name => {
+    let b = balances[name].balance;
+    if ((isDebt && b > 0) || (!isDebt && b < 0)) {
+      let custRecords = records.filter(r => cleanStr(r.sender) === cleanStr(name));
+      custRecords.sort((x, y) => (y.timestamp || 0) - (x.timestamp || 0));
+      let firstRecord = custRecords[0] || {};
+
+      customerDetailsList.push({
+        name,
+        balance: b,
+        firstTimestamp: firstRecord.timestamp || 0,
+        transIds: balances[name].transIds || [],
+        lastTransId: balances[name].lastTransId,
+        lastDate: balances[name].lastDate,
+        hasAdvOut: balances[name].hasAdvOut || false,
+        hasAcOut: balances[name].hasAcOut || false
+      });
+    }
+  });
+
+  customerDetailsList.sort((a, b) => b.firstTimestamp - a.firstTimestamp);
+
+  customerDetailsList.forEach(itemData => {
+    hasData = true;
+    const item = document.createElement('div');
+    item.className = 'detail-item';
+    let sortedTransIds = [...(itemData.transIds || [])].sort((idA, idB) => { 
+      let numA = parseInt(idA.replace(/[^0-9]/g, '')) || 0; 
+      let numB = parseInt(idB.replace(/[^0-9]/g, '')) || 0; 
+      return numA - numB; 
+    }); 
+    const transIdText = compressTransIds(sortedTransIds) || itemData.lastTransId || '-'; 
+    const dateTimeText = itemData.lastDate ? `<br><span>ရက်စွဲ/အချိန်: <b>${itemData.lastDate}</b></span>` : ''; 
+    
+    let badgeText = '';
+    if (itemData.hasAdvOut) {
+      badgeText = ' <span style="color:#ffd700; font-size:10px;">(ကြိုထုတ်ငွေ)</span>';
+    } else if (itemData.hasAcOut) {
+      badgeText = ' <span style="color:#ff4d4d; font-size:10px;">(အကြွေးလွှဲ)</span>';
+    }
+    
+    item.innerHTML = `
+      <div class="detail-left">
+        <div style="font-weight: bold; font-size: 11px; color:#38bdf8;">👤 ${itemData.name}${badgeText}</div>
+        <div style="font-size: 9px; opacity: 0.8; margin-top: 1px;">
+          <span>လွှဲနံပါတ်: <b>${transIdText}</b></span> ${dateTimeText}
+        </div>
+      </div>
+      <div class="detail-right" style="color: ${isDebt ? '#ff4d4d' : '#00e676'}; font-weight: bold;">
+        ${Math.abs(itemData.balance).toLocaleString()} ကျပ်
+      </div>`;
+    body.appendChild(item);
+  });
+
+  if (!hasData) body.innerHTML = `<div style="text-align:center; color:#64748b; padding:10px; font-size:10px;">မရှိပါ။</div>`; 
+  document.getElementById('detailsModal').style.display = 'flex'; 
+} 
+
+function renderHomeExpenseDetailModal() { 
+  const body = document.getElementById('detailsModalBody'); 
+  const title = document.getElementById('detailsModalTitle'); 
+  title.innerText = "အိမ်သုံးစရိတ် အသေးစိတ်နှင့် လအလိုက် စုစုပေါင်း"; 
+  title.style.color = "#fbbf24"; 
+  body.innerHTML = ""; 
+  let monthlyData = {}; 
+  let totalAllTime = 0; 
+  records.forEach(r => { 
+    let homeExp = Number(r.homeExpense) || 0; 
+    if (homeExp > 0 && r.dateTime && r.dateTime.isoDate) { 
+      let monthKey = r.dateTime.isoDate.substring(0, 7); 
+      if (!monthlyData[monthKey]) { 
+        monthlyData[monthKey] = { total: 0, items: [] }; 
+      } 
+      monthlyData[monthKey].total += homeExp; 
+      monthlyData[monthKey].items.push(r); 
+      totalAllTime += homeExp; 
+    } 
+  }); 
+  let sortedMonths = Object.keys(monthlyData).sort().reverse(); 
+  if (sortedMonths.length === 0) { 
+    body.innerHTML = `<div style="text-align:center; color:#64748b; padding:15px; font-size:11px;">အိမ်သုံးစရိတ် မှတ်တမ်းများ မရှိသေးပါ။</div>`; 
+  } else { 
+    let summaryBox = document.createElement('div'); 
+    summaryBox.style.cssText = "background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; border-radius: 6px; padding: 8px; margin-bottom: 10px; text-align: center;"; 
+    summaryBox.innerHTML = `<span style="font-size: 11px; color: #fbbf24; font-weight: bold;">📊 စုစုပေါင်း အိမ်သုံးစရိတ် (အားလုံး): ${totalAllTime.toLocaleString()} ကျပ်</span>`; 
+    body.appendChild(summaryBox); 
+    sortedMonths.forEach(month => { 
+      let data = monthlyData[month]; 
+      let [year, monthNum] = month.split('-'); 
+      let monthTitleName = `${year} ခုနှစ်၊ လ (${monthNum} လ)`; 
+      let monthSection = document.createElement('div'); 
+      monthSection.style.cssText = "margin-bottom: 12px; border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 6px; padding: 6px; background: rgba(18,24,36,0.6);"; 
+      let headerDiv = document.createElement('div'); 
+      headerDiv.style.cssText = "display: flex; justify-content: space-between; font-weight: bold; color: #fbbf24; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 4px; font-size: 11px;"; 
+      headerDiv.innerHTML = `<span>📅 ${monthTitleName}</span><span>စုစုပေါင်း: ${data.total.toLocaleString()} ကျပ်</span>`; 
+      monthSection.appendChild(headerDiv); 
+      data.items.forEach(r => { 
+        let itemDiv = document.createElement('div'); 
+        itemDiv.className = 'detail-item'; 
+        let remarkStr = r.homeExpenseRemark ? ` (${r.homeExpenseRemark})` : ''; 
+        itemDiv.innerHTML = ` 
+          <div class="detail-left"> 
+            <div style="font-size: 10px; color:#38bdf8;">ရက်စွဲ: <b>${r.dateTime?.fullStr || '-'}</b> ${remarkStr}</div> 
+            <div style="font-size: 9px; opacity: 0.7;">လွှဲနံပါတ်: ${r.transId}</div> 
+          </div> 
+          <div class="detail-right" style="color: #fbbf24;"> 
+            -${Number(r.homeExpense).toLocaleString()} ကျပ် 
+          </div>`; 
+        monthSection.appendChild(itemDiv); 
+      }); 
+      body.appendChild(monthSection); 
+    }); 
+  } 
+  document.getElementById('detailsModal').style.display = 'flex'; 
+} 
+
+function closeDetailsModal() { 
+  document.getElementById('detailsModal').style.display = 'none'; 
+} 
+
+function renderAuditLogs() { 
+  const body = document.getElementById('auditBody'); 
+  body.innerHTML = auditLogs.length ? "" : `<div style="text-align:center; color:#64748b; padding:10px; font-size:10px;">မှတ်တမ်းများ မရှိသေးပါ။</div>`; 
+  auditLogs.forEach(log => { 
+    const item = document.createElement('div'); 
+    item.className = `audit-item ${log.type.toLowerCase()}`; 
+    let logInfoHtml = ""; 
+    if (log.type === 'DELETE') { 
+      logInfoHtml = ` 
+        <div><span style="color:#ff4d4d; font-weight:bold;">ဖျက်ခဲ့သည်</span> 🕒 <b>${log.time}</b></div> 
+        <div style="margin-top:2px;"> 
+          📌 <b>လွှဲနံပါတ်:</b> ${log.old.transId} | 👤 <b>လွှဲသူ:</b> ${log.old.sender || 'မရှိပါ'}<br> 
+          📥 <b>ML:</b> ${(log.old.ml||0).toLocaleString()} | 📤 <b>အကြွေးလွှဲ:</b> ${(log.old.ac||0).toLocaleString()} 
+        </div>`; 
+    } else { 
+      logInfoHtml = ` 
+        <div><span style="color:#f59e0b; font-weight:bold;">ပြင်ခဲ့သည်</span> 🕒 <b>${log.time}</b></div> 
+        <div style="margin-top:2px; color:#f59e0b;"><b>[မူလ]</b> 📌 ${log.old.transId} | 👤 ${log.old.sender || 'မရှိပါ'} | ML: ${(log.old.ml||0).toLocaleString()}</div> 
+        <div style="color:#00e676; margin-top:2px;"><b>[ပြင်ဆင်ချက်]</b> 📌 ${log.new.transId} | 👤 ${log.new.sender || 'မရှိပါ'} | ML: ${(log.new.ml||0).toLocaleString()}</div>`; 
+    } 
+    const deleteSingleBtn = document.createElement('button'); 
+    deleteSingleBtn.className = 'btn-action btn-delete'; 
+    deleteSingleBtn.style.marginLeft = '8px'; 
+    deleteSingleBtn.innerText = 'ဖျက်'; 
+    deleteSingleBtn.onclick = () => deleteSingleAuditLog(log.id); 
+    const contentDiv = document.createElement('div'); 
+    contentDiv.style.flex = '1'; 
+    contentDiv.innerHTML = logInfoHtml; 
+    item.appendChild(contentDiv); 
+    item.appendChild(deleteSingleBtn); 
+    body.appendChild(item); 
+  }); 
+} 
+
+function deleteSingleAuditLog(logId) { 
+  if (confirm("⚠ ဤမှတ်တမ်းကို ဖျက်ရန် သေချာပါသလား?")) { 
+    db.ref('audit_logs/' + logId).remove(); 
+  } 
+} 
+
+function clearAllAuditLogs() { 
+  if (confirm("⚠ မှတ်တမ်းများအားလုံးကို ရှင်းလင်းရန် သေချာပါသလား?")) { 
+    db.ref('audit_logs').remove().then(() => alert("✅ ရှင်းလင်းပြီးပါပြီ။")); 
+  } 
+} 
+
+function onTransCategoryChange() { 
+  const category = document.getElementById('transCategory').value; 
+  
+  if (category === "MLAC" || category === "MLOTH") {
+    const mlInput = document.getElementById('mlAmount');
+    if (mlInput) scrollToNextField(mlInput);
+  } else if (category === "ACOLD") {
+    const acInput = document.getElementById('acAmount');
+    if (acInput) scrollToNextField(acInput);
+  }
+
+  if (!category) { 
+    document.getElementById('transId').value = ""; 
+    checkDuplicateTransIdLive();
+    return; 
+  } 
+  let maxNum = 99; 
+  records.forEach(r => { 
+    if (r.transCategory === category && r.transId) { 
+      let str = String(r.transId).toUpperCase(); 
+      if (str.startsWith(category)) { 
+        let num = parseInt(str.replace(category, '').trim(), 10); 
+        if (!isNaN(num) && num > maxNum) maxNum = num; 
+      } 
+    } 
+  }); 
+  document.getElementById('transId').value = `${category}${maxNum + 1}`; 
+  checkDuplicateTransIdLive();
+} 
+
+function checkDuplicateTransIdLive() {
+  const transIdInput = document.getElementById('transId');
+  const editIndex = parseInt(document.getElementById('editIndex').value);
+  const currentVal = transIdInput.value.trim().toUpperCase();
+
+  if (!currentVal) return false;
+
+  let isDuplicate = false;
+  records.forEach((r, idx) => {
+    if (editIndex >= 0 && idx === editIndex) return; 
+    if (r.transId && String(r.transId).trim().toUpperCase() === currentVal) {
+      isDuplicate = true;
+    }
+  });
+
+  return isDuplicate;
+}
+
+function toggleCitySummary(event) { 
+  if (event) event.stopPropagation();
+  const card = document.getElementById('citySummaryCard'); 
+  if (isCitySummaryUnlocked && card.style.display !== 'none') { 
+    card.style.display = 'none'; 
+    isCitySummaryUnlocked = false; 
+  } else { 
+    let pinInput = prompt("PIN 2 ထည့်ပါ:");
+    if (pinInput === securityPins[2]) { 
+      isCitySummaryUnlocked = true; 
+      card.style.display = 'block'; 
+      renderCitySummary(); 
+    } else if (pinInput !== null) { 
+      alert("❌ PIN 2 နံပါတ် မှားယွင်းနေပါသည်။"); 
+    } 
+  } 
+} 
+
+function toggleCustomCityInput() { 
+  const cityVal = document.getElementById('targetCity').value; 
+  document.getElementById('customCityNote').style.display = (cityVal === "အခြားမြို့") ? "block" : "none"; 
+  document.getElementById('marluWithdrawContainer').style.display = (cityVal === "မော်လူး") ? "block" : "none"; 
+  if (cityVal !== "မော်လူး") document.getElementById('marluAmount').value = ""; 
+} 
+
+function getTargetCityValue() { 
+  const cityVal = document.getElementById('targetCity').value; 
+  return cityVal === "အခြားမြို့" ? document.getElementById('customCityNote').value.trim() : cityVal; 
+} 
+
+function setTargetCityValue(val) { 
+  const defaultCities = ["မန္တလေး", "မြစ်ကြီးနား", "ကသာ", "ဗန်းမောက်", "မော်လူး"]; 
+  const isDefault = defaultCities.includes(val); 
+  document.getElementById('targetCity').value = isDefault ? val : (val ? "အခြားမြို့" : ""); 
+  document.getElementById('customCityNote').style.display = (!isDefault && val) ? "block" : "none"; 
+  if (!isDefault && val) document.getElementById('customCityNote').value = val; 
+  document.getElementById('marluWithdrawContainer').style.display = (val === "မော်လူး") ? "block" : "none"; 
+} 
+
+function handleHomeBalanceChange() { 
+  const inputElem = document.getElementById('homeBalance'); 
+  const val = inputElem.value.trim(); 
+  let pinInput = prompt("PIN 1 ထည့်ပါ:");
+  if (pinInput !== securityPins[1]) { 
+    if (pinInput !== null) alert("❌ PIN 1 နံပါတ် မှားယွင်းနေပါသည်။"); 
+    inputElem.value = initialHomeBalance > 0 ? initialHomeBalance.toLocaleString() : ""; 
+    return; 
+  } 
+  let newBal = parseFormattedNumber(val); 
+  if (confirm(`⚠ စတင် အိမ်လက်ကျန်ငွေကို "${newBal.toLocaleString()}" ကျပ် သို့ ပြောင်းရန် သေချာပါသလား?`)) { 
+    initialHomeBalance = newBal; 
+    db.ref('settings/home_balance').set(initialHomeBalance); 
+    alert("✅ အောင်မြင်ပါသည်။"); 
+  } else {
+    inputElem.value = initialHomeBalance > 0 ? initialHomeBalance.toLocaleString() : ""; 
+  }
+} 
+
+function toggleCustomIdTypeInput() { 
+  document.getElementById('customIdTypeNote').style.display = (document.getElementById('idType').value === "အခြား") ? "block" : "none"; 
+} 
+
+function getIdTypeValue() { 
+  const type = document.getElementById('idType').value; 
+  return (type === "အခြား") ? (document.getElementById('customIdTypeNote').value.trim() || "အခြား") : type; 
+} 
+
+function setIdTypeValue(val) { 
+  const isStandard = ["KBZ Acc", "K.P", "Ph", "NRC"].includes(val); 
+  document.getElementById('idType').value = isStandard ? val : (val ? "အခြား" : ""); 
+  document.getElementById('customIdTypeNote').style.display = (!isStandard && val) ? "block" : "none"; 
+  if (!isStandard && val) document.getElementById('customIdTypeNote').value = val; 
+  handleIdTypeChange(); 
+} 
+
+function toggleCustomExpenseInput() { 
+  handleAcInputAutoFee(); 
+} 
+
+function toggleCustomIncomeInput() { 
+  document.getElementById('customIncomeNote').style.display = (document.getElementById('incomeCategory').value === "အခြားဝင်ငွေ") ? "block" : "none"; 
+  handleAcInputAutoFee(); 
+} 
+
+function getCurrentDateTime() { 
+  const now = new Date(); 
+  const yyyy = now.getFullYear(); 
+  const mm = String(now.getMonth() + 1).padStart(2, '0'); 
+  const dd = String(now.getDate()).padStart(2, '0'); 
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); 
+  return { isoDate: `${yyyy}-${mm}-${dd}`, dateStr: `${dd}/${mm}/${yyyy}`, timeStr, fullStr: `${dd}/${mm}/${yyyy} (${timeStr})` }; 
+} 
+
+function updateAdjBoxStyle() { 
+  const type = document.getElementById('adjType').value; 
+  const input = document.getElementById('adjAmount'); 
+  if (type === "advOut" || type === "advInReturn") { 
+    input.className = "form-control text-yellow"; 
+  } else if (["payDebt", "advIn", "advOutReturn"].includes(type)) { 
+    input.className = "form-control input-in"; 
+  } else { 
+    input.className = "form-control"; 
+  } 
+} 
+
+function compressTransIds(ids) { 
+  if (!ids?.length) return ""; 
+  let prefixMap = {}; 
+  ids.forEach(id => { 
+    let match = id.match(/^([A-Za-z]+)(\d+)$/); 
+    if (match) { 
+      let [_, prefix, numStr] = match; 
+      if (!prefixMap[prefix]) prefixMap[prefix] = []; 
+      prefixMap[prefix].push({ num: parseInt(numStr, 10), numLen: numStr.length, raw: id }); 
+    } else { 
+      if (!prefixMap["OTHERS"]) prefixMap["OTHERS"] = []; 
+      prefixMap["OTHERS"].push({ raw: id }); 
+    } 
+  }); 
+  let formattedParts = []; 
+  for (let prefix in prefixMap) { 
+    if (prefix === "OTHERS") { 
+      prefixMap[prefix].forEach(item => formattedParts.push(item.raw)); 
+      continue; 
+    } 
+    let items = prefixMap[prefix].sort((a, b) => a.num - b.num); 
+    let ranges = [], start = items[0], prev = items[0]; 
+    for (let i = 1; i < items.length; i++) { 
+      if (items[i].num === prev.num + 1) prev = items[i]; 
+      else { 
+        ranges.push({ start, end: prev }); 
+        start = prev = items[i]; 
+      } 
+    } 
+    ranges.push({ start, end: prev }); 
+    ranges.forEach(r => { 
+      if (r.start.num === r.end.num) formattedParts.push(r.start.raw); 
+      else if (r.end.num === r.start.num + 1) formattedParts.push(r.start.raw, r.end.raw); 
+      else formattedParts.push(`${r.start.raw} - ${prefix}${String(r.end.num).padStart(r.end.numLen, '0')}`); 
+    }); 
+  } 
+  return formattedParts.join(', '); 
+} 
+
+const cleanStr = str => (str || "").replace(/\s+/g, '').toLowerCase(); 
+
+function calculateBalances() { 
+  let customerBalances = {}; 
+  for (let i = records.length - 1; i >= 0; i--) { 
+    let r = records[i]; 
+    if (!r.sender) continue; 
+    let advIn = ["payDebt", "advIn", "advOutReturn"].includes(r.adjType) ? (r.adjAmount || 0) : 0; 
+    let advOut = ["advInReturn", "advOut"].includes(r.adjType) ? (r.adjAmount || 0) : 0; 
+    if (r.transCategory === "ADVOUT" && !r.adjType) { 
+      advOut += (r.adjAmount || r.ac || r.ml || 0); 
+    } 
+    let hasAcOutVal = (r.ac || 0) > 0; 
+    let netTrans = (r.ac || 0) + advOut - advIn; 
+    let originalName = r.sender.trim(); 
+    let nameKey = cleanStr(originalName); 
+    if (!customerBalances[nameKey]) { 
+      customerBalances[nameKey] = { 
+        displayName: originalName, 
+        balance: netTrans, 
+        lastTransId: r.transId, 
+        transIds: (r.transId && ((r.ac || 0) > 0 || advOut > 0)) ? [r.transId] : [], 
+        lastDate: r.dateTime?.fullStr || '', 
+        hasAdvOut: advOut > 0, 
+        hasAcOut: hasAcOutVal 
+      }; 
+    } else { 
+      customerBalances[nameKey].displayName = originalName; 
+      customerBalances[nameKey].balance += netTrans; 
+      customerBalances[nameKey].lastTransId = r.transId; 
+      if (advOut > 0) customerBalances[nameKey].hasAdvOut = true; 
+      if (hasAcOutVal) customerBalances[nameKey].hasAcOut = true; 
+      if (r.transId && ((r.ac || 0) > 0 || advOut > 0) && !customerBalances[nameKey].transIds.includes(r.transId)) { 
+        customerBalances[nameKey].transIds.push(r.transId); 
+      } 
+      if (customerBalances[nameKey].balance === 0) { 
+        customerBalances[nameKey].transIds = []; 
+        customerBalances[nameKey].hasAdvOut = false; 
+        customerBalances[nameKey].hasAcOut = false; 
+      } 
+      customerBalances[nameKey].lastDate = r.dateTime?.fullStr || ''; 
+    } 
+  } 
+  let formattedBalances = {}; 
+  for (let key in customerBalances) { 
+    let item = customerBalances[key]; 
+    formattedBalances[item.displayName] = item; 
+  } 
+  return formattedBalances; 
+} 
+
+function renderCitySummary() { 
+  if (!isCitySummaryUnlocked) return; 
+  const grid = document.getElementById('citySummaryGrid'); 
+  grid.innerHTML = ""; 
+  let cityData = {}; 
+  records.forEach(r => { 
+    let city = r.targetCity || "မသတ်မှတ်ထားပါ"; 
+    if (!cityData[city]) cityData[city] = { ml: 0, ac: 0, fee: 0, marluAmt: 0, count: 0 }; 
+    cityData[city].ml += (r.ml || 0); 
+    cityData[city].ac += (r.ac || 0); 
+    cityData[city].fee += (r.fee || 0); 
+    cityData[city].marluAmt += (r.marluAmt || 0); 
+    cityData[city].count += 1; 
+  }); 
+  if (!Object.keys(cityData).length) { 
+    grid.innerHTML = `<div style="font-size: 10px; opacity: 0.7;">မှတ်တမ်း မရှိသေးပါ။</div>`; 
+    return; 
+  } 
+  Object.keys(cityData).forEach(city => { 
+    const d = cityData[city]; 
+    const div = document.createElement('div'); 
+    div.className = "city-box"; 
+    div.innerHTML = ` 
+      <div class="city-name">📍 ${city} (${d.count} ကြိမ်)</div> 
+      <div class="city-stat"><span>ML အဝင်:</span><span class="text-in">${d.ml.toLocaleString()}</span></div> 
+      <div class="city-stat"><span>အကြွေးလွှဲ:</span><span class="text-out">${d.ac.toLocaleString()}</span></div> 
+      ${(city === "မော်လူး" || d.marluAmt > 0) ? `<div class="city-stat"><span>မော်လူးထုတ်ငွေ:</span><span class="text-out">${d.marluAmt.toLocaleString()}</span></div>` : ""} 
+      <div class="city-stat"><span>လွှဲခ:</span><span class="text-fee">${d.fee.toLocaleString()}</span></div>`; 
+    grid.appendChild(div); 
+  }); 
+} 
+
+function checkCustomerStatus() { 
+  const senderInputVal = document.getElementById('senderName').value.trim(); 
+  const alertBox = document.getElementById('debtAlert'); 
+  const autoDebtTransInput = document.getElementById('autoDebtTransId'); 
+  const balances = calculateBalances(); 
+  autoDebtTransInput.value = ""; 
+  
+  if (!senderInputVal) { 
+    alertBox.style.display = "none"; 
+    return; 
+  } 
+
+  const inputClean = cleanStr(senderInputVal);
+  let matchedKey = null;
+  let foundByTransId = false;
+
+  let matchedRecordByTrans = records.find(r => cleanStr(r.transId) === inputClean);
+  if (matchedRecordByTrans && matchedRecordByTrans.sender) {
+    matchedKey = matchedRecordByTrans.sender.trim();
+    foundByTransId = true;
+  } else {
+    matchedKey = Object.keys(balances).find(custName => {
+      let cNameClean = cleanStr(custName);
+      return cNameClean.includes(inputClean) || inputClean.includes(cNameClean);
+    });
+  }
+
+  if (matchedKey && balances[matchedKey] !== undefined) { 
+    const data = balances[matchedKey]; 
+    let sortedTransIds = [...(data.transIds || [])].sort((idA, idB) => { 
+      let numA = parseInt(idA.replace(/[^0-9]/g, '')) || 0; 
+      let numB = parseInt(idB.replace(/[^0-9]/g, '')) || 0; 
+      return numA - numB; 
+    }); 
+    const allTransStr = compressTransIds(sortedTransIds) || data.lastTransId; 
+    
+    if (foundByTransId && senderInputVal !== matchedKey) {
+      document.getElementById('senderName').value = matchedKey;
+    }
+
+    if (data.balance < 0) { 
+      alertBox.className = "debt-alert has-advance"; 
+      alertBox.innerHTML = `🔔 <b>${matchedKey}</b> တွင် <b>ပိုငွေ ${Math.abs(data.balance).toLocaleString()}</b> ကျပ် ရှိပါသည်။`; 
+      alertBox.style.display = "block"; 
+    } else if (data.balance > 0) { 
+      alertBox.className = "debt-alert has-debt"; 
+      alertBox.innerHTML = ` 
+        <div>⚠️ <b>${matchedKey}</b> တွင် <b>အကြွေးကျန် ${data.balance.toLocaleString()}</b> ကျပ် ရှိနေပါသည်။</div> 
+        <div class="debt-action-btns"> 
+          <button type="button" class="btn-quick-settle" onclick="quickSettleDebt('${allTransStr}', ${data.balance})">✅ အကြွေးအားလုံး ဆပ်မည်</button> 
+        </div>`; 
+      alertBox.style.display = "block"; 
+      autoDebtTransInput.value = allTransStr; 
+    } else { 
+      alertBox.style.display = "none"; 
+    } 
+  } else { 
+    alertBox.style.display = "none"; 
+  } 
+} 
+
+function quickSettleDebt(transIdStr, totalDebt) { 
+  let amountToSet = totalDebt; 
+  document.getElementById('adjType').value = 'payDebt'; 
+  updateAdjBoxStyle(); 
+  let adjInput = document.getElementById('adjAmount');
+  adjInput.value = amountToSet.toLocaleString(); 
+  handleAmountInput('adjAmount', String(amountToSet)); 
+  document.getElementById('autoDebtTransId').value = transIdStr; 
+  let remarkInput = document.getElementById('transRemark'); 
+  remarkInput.value = `[ကြွေးကျန် အပြည့်အစုံ ဆပ်ငွေ]`; 
+  recalculateLiveHomeBalance(); 
+  closeCitySummaryBox();
+  alert(`✅ အကြွေးဆပ်ငွေ ${amountToSet.toLocaleString()} ကျပ် ထည့်သွင်းပြီးပါပြီ။`); 
+} 
+
+async function submitData() { 
+  if (!validateFormInputs()) return; 
+
+  if (checkDuplicateTransIdLive()) {
+    alert("❌ ဤလွှဲနံပါတ်သည် စာရင်းထဲတွင် ရှိနှင့်ပြီးသား ဖြစ်နေသောကြောင့် သိမ်းဆည်း၍ မရပါ။ ကျေးဇူးပြု၍ လွှဲနံပါတ်အသစ် ပြောင်းလဲပေးပါ။");
+    document.getElementById('transId').focus();
+    return;
+  }
+
+  const editIndex = parseInt(document.getElementById('editIndex').value); 
+  const homeExpense = parseFormattedNumber(document.getElementById('homeExpenseInput').value); 
+  const expenseAmt = parseFormattedNumber(document.getElementById('expenseAmount').value); 
+  const incomeAmt = parseFormattedNumber(document.getElementById('incomeAmount').value); 
+  const transCategory = document.getElementById('transCategory').value; 
+  const sender = document.getElementById('senderName').value.trim(); 
+  
+  let finalTransCategory = transCategory;
+  let transId = document.getElementById('transId').value.trim();
+
+  if ((homeExpense > 0 || expenseAmt > 0 || incomeAmt > 0) && !transCategory) {
+    if (homeExpense > 0) finalTransCategory = "HOME";
+    else if (expenseAmt > 0) finalTransCategory = "EXP";
+    else if (incomeAmt > 0) finalTransCategory = "INC";
+
+    if (!transId) {
+      transId = finalTransCategory + "_" + Date.now().toString().slice(-6);
+    }
+  } else {
+    if (!transCategory) { 
+      alert("⚠ လွှဲနံပါတ်အမျိုးအစား ရွေးပါ။"); 
+      document.getElementById('transCategory').focus(); 
+      return; 
+    } 
+    if (!transId) return alert("⚠ လွှဲနံပါတ် ထည့်ပါ။");
+    if (!sender) { 
+      alert("⚠ လွှဲသူအမည် ထည့်ပါ။"); 
+      document.getElementById('senderName').focus();
+      return; 
+    } 
+  }
+
+  const phone = ""; 
+  const receiver = document.getElementById('receiverName').value.trim(); 
+  const targetCity = getTargetCityValue(); 
+  const marluAmt = targetCity === "မော်လူး" ? parseFormattedNumber(document.getElementById('marluAmount').value) : 0; 
+  const idType = getIdTypeValue(); 
+  const idNumber = document.getElementById('idNumber').value.trim(); 
+  const ml = parseFormattedNumber(document.getElementById('mlAmount').value); 
+  const ac = parseFormattedNumber(document.getElementById('acAmount').value); 
+  const fee = parseFormattedNumber(document.getElementById('fee').value); 
+  const adjType = document.getElementById('adjType').value; 
+  const adjAmount = parseFormattedNumber(document.getElementById('adjAmount').value); 
+  let transRemark = document.getElementById('transRemark').value.trim(); 
+  const expCat = document.getElementById('expenseCategory').value; 
+  const expenseName = expCat; 
+  const expenseRemark = document.getElementById('expenseRemark').value.trim(); 
+  const homeExpenseRemark = document.getElementById('homeExpenseRemark').value.trim(); 
+  const incCat = document.getElementById('incomeCategory').value; 
+  const incomeName = incCat === "အခြားဝင်ငွေ" ? document.getElementById('customIncomeNote').value.trim() : incCat; 
+  const incomeRemark = document.getElementById('incomeRemark').value.trim(); 
+
+  const recordKey = editIndex >= 0 ? records[editIndex].key : ('trans_' + Date.now()); 
+  const timestamp = editIndex >= 0 ? records[editIndex].timestamp : Date.now(); 
+  const dateTime = editIndex >= 0 ? records[editIndex].dateTime : getCurrentDateTime(); 
+  const recordData = { 
+    key: recordKey, timestamp, transCategory: finalTransCategory, transId, sender, phone, receiver, targetCity, 
+    marluAmt, idType, idNumber, ml, ac, fee, adjType, adjAmount, transRemark, expenseName, 
+    expenseAmt, expenseRemark, homeExpense, homeExpenseRemark, incomeName, incomeAmt, incomeRemark, dateTime 
+  }; 
+
+  if (editIndex >= 0) {
+    logAudit('EDIT', records[editIndex], recordData);
+  } 
+  
+  db.ref('transactions/' + recordKey).set(recordData, (error) => { 
+    if (error) alert("❌ အမှားအယွင်းရှိပါသည်: " + error.message); 
+    else { 
+      resetForm(); 
+      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    } 
+  }); 
+} 
+
+function resetForm() { 
+  document.getElementById('editIndex').value = "-1"; 
+  document.getElementById('transCategory').value = ""; 
+  document.getElementById('transId').value = ""; 
+
+  ['senderName', 'receiverName', 'targetCity', 'customCityNote', 'marluAmount', 'idNumber', 'mlAmount', 'acAmount', 'adjAmount', 'transRemark', 'expenseCategory', 'expenseAmount', 'expenseRemark', 'homeExpenseInput', 'homeExpenseRemark', 'incomeCategory', 'customIncomeNote', 'incomeAmount', 'incomeRemark'].forEach(id => { 
+    const el = document.getElementById(id); 
+    if (el) el.value = ""; 
+  }); 
+  document.getElementById('customCityNote').style.display = "none"; 
+  document.getElementById('marluWithdrawContainer').style.display = "none"; 
+  setIdTypeValue(""); 
+  document.getElementById('fee').value = "0"; 
+  document.getElementById('adjType').value = "none"; 
+  document.getElementById('customIncomeNote').style.display = "none"; 
+  ['mlAmount', 'acAmount', 'expenseAmount', 'incomeAmount', 'adjAmount', 'marluAmount', 'homeExpenseInput'].forEach(f => { 
+    const el = document.getElementById(f); 
+    if (el) el.disabled = false; 
+  }); 
+  document.getElementById('submitBtn').innerHTML = "💾 စာရင်းသွင်းမည်"; 
+  updateAdjBoxStyle(); 
+  checkCustomerStatus(); 
+  recalculateLiveHomeBalance(); 
+  closeCitySummaryBox();
+  window.scrollTo({ top: 0, behavior: 'smooth' }); 
+} 
+
+function editRecord(originalIndex) { 
+  const index = records.findIndex(r => r.key === originalIndex || records.indexOf(r) === originalIndex); 
+  if (index === -1) return; 
+  const r = records[index]; 
+  document.getElementById('editIndex').value = index; 
+  if (r.transCategory && r.transCategory !== "HOME" && r.transCategory !== "EXP" && r.transCategory !== "INC") {
+    document.getElementById('transCategory').value = r.transCategory; 
+  } else {
+    document.getElementById('transCategory').value = "";
+  }
+  document.getElementById('transId').value = r.transId; 
+
+  document.getElementById('senderName').value = r.sender || ""; 
+  document.getElementById('receiverName').value = r.receiver; 
+  setTargetCityValue(r.targetCity || ""); 
+  if (r.targetCity === "မော်လူး") document.getElementById('marluAmount').value = r.marluAmt ? Number(r.marluAmt).toLocaleString() : ""; 
+  setIdTypeValue(r.idType); 
+  document.getElementById('idNumber').value = r.idNumber || ""; 
+  handleAccountInput(document.getElementById('idNumber')); 
+  document.getElementById('mlAmount').value = r.ml ? Number(r.ml).toLocaleString() : ""; 
+  document.getElementById('acAmount').value = r.ac ? Number(r.ac).toLocaleString() : ""; 
+  document.getElementById('fee').value = r.fee !== undefined ? Number(r.fee).toLocaleString() : "0"; 
+  document.getElementById('adjType').value = r.adjType || "none"; 
+  document.getElementById('adjAmount').value = r.adjAmount ? Number(r.adjAmount).toLocaleString() : ""; 
+  document.getElementById('transRemark').value = r.transRemark || ""; 
+  document.getElementById('homeExpenseInput').value = r.homeExpense ? Number(r.homeExpense).toLocaleString() : ""; 
+  document.getElementById('homeExpenseRemark').value = r.homeExpenseRemark || ""; 
+  document.getElementById('expenseRemark').value = r.expenseRemark || ""; 
+  document.getElementById('incomeRemark').value = r.incomeRemark || ""; 
+
+  const setCatField = (name, catId, noteId) => { 
+    const isStandard = ["ပြဒါးခဲ ကောက်ငွေ", "ရွှေထည် ကောက်ငွေ", "AC ဖြတ်စ", "လွှဲခ ပြန်အမ်ပေးငွေ", "C မှဝင်ငွေ"].includes(name); 
+    document.getElementById(catId).value = isStandard ? name : (name ? "အခြားဝင်ငွေ" : ""); 
+    if (noteId) { 
+      document.getElementById(noteId).style.display = (!isStandard && name) ? "block" : "none"; 
+      if (!isStandard && name) document.getElementById(noteId).value = name; 
+    } 
+  }; 
+  setCatField(r.expenseName, 'expenseCategory', null); 
+  setCatField(r.incomeName, 'incomeCategory', 'customIncomeNote'); 
+  document.getElementById('expenseAmount').value = r.expenseAmt ? Number(r.expenseAmt).toLocaleString() : ""; 
+  document.getElementById('incomeAmount').value = r.incomeAmt ? Number(r.incomeAmt).toLocaleString() : ""; 
+  updateAdjBoxStyle(); 
+  handleSenderNameInput(); 
+  const filledField = ['mlAmount', 'acAmount', 'expenseAmount', 'incomeAmount', 'adjAmount', 'marluAmount', 'homeExpenseInput'].find(f => parseFormattedNumber(document.getElementById(f).value) > 0); 
+  if (filledField) handleAmountInput(filledField, document.getElementById(filledField).value); 
+  document.getElementById('submitBtn').innerHTML = "✏ ပြင်ဆင်ချက် သိမ်းမည်"; 
+  closeCitySummaryBox();
+  window.scrollTo({ top: 0, behavior: 'smooth' }); 
+} 
+
+function deleteRecord(originalIndex) { 
+  const index = records.findIndex(r => r.key === originalIndex || records.indexOf(r) === originalIndex); 
+  if (index === -1) return; 
+  const record = records[index]; 
+  if (confirm(`လွှဲနံပါတ် [ ${record.transId} ] ကို ဖျက်ရန် သေချာပါသလား?`)) { 
+    logAudit('DELETE', record); 
+    db.ref('transactions/' + record.key).remove(); 
+  } 
+} 
+
+function clearGlobalSearch() {
+  document.getElementById('globalSearchInput').value = "";
+  const panel = document.getElementById('searchResultPanel');
+  if (panel) {
+    panel.innerHTML = '';
+    panel.style.display = 'none';
+  }
+  renderTable();
+}
+
+function copyCsvToClipboard() { 
+  let listToExport = currentDisplayList;
+  if (!listToExport || listToExport.length === 0) {
+    alert("⚠ ရွေးချယ်ထားသော ရက်စွဲအတွင်း ကူးယူရန် မှတ်တမ်းများ မရှိပါ။");
+    return;
+  }
+  let csvContent = "ရက်စွဲ,လွှဲနံပါတ်,လွှဲသူ,ထုတ်သူ,မြို့,အမျိုးအစား,အကောင့်,ML,အကြွေးလွှဲ,မော်လူး,အိမ်သုံး,လွှဲခ,လက်ကျန်,အိမ်လက်ကျန်\n"; 
+  listToExport.forEach(r => { 
+    let rowData = [
+      `"${r.dateTime?.fullStr || ''}"`,
+      `"${r.transId || ''}"`,
+      `"${r.sender || ''}"`,
+      `"${r.receiver || ''}"`,
+      `"${r.targetCity || ''}"`,
+      `"${r.idType || ''}"`,
+      `"${r.idNumber || ''}"`,
+      r.ml || 0,
+      r.ac || 0,
+      r.marluAmt || 0,
+      r.homeExpense || 0,
+      r.fee || 0,
+      r.calculatedPerson || 0,
+      r.calculatedHome || 0
+    ];
+    csvContent += rowData.join(",") + "\n"; 
+  }); 
+
+  navigator.clipboard.writeText(csvContent).then(() => {
+    alert("✅ ရွေးချယ်ထားသော ရက်စွဲအတွင်းရှိ စာရင်းများကိုသာ Copy ကူးပြီးပါပြီ။ ဖုန်းထဲက Notes (သို့မဟုတ်) Viber မှာ ဝင်၍ Paste ပြီး သိမ်းဆည်းနိုင်ပါပြီ။");
+  }).catch(err => {
+    alert("❌ ကူးယူရာတွင် အမှားအယွင်းရှိပါသည်: " + err.message);
+  });
+} 
+
+function handleGlobalSearch(keyword) {
+  renderSearchResultPanel(keyword);
+  renderTable();
+}
+
+function renderSearchResultPanel(keyword) {
+  const panel = document.getElementById('searchResultPanel');
+  if (!panel) return;
+  const cleanKey = cleanStr(keyword);
+
+  if (!cleanKey) {
+    panel.innerHTML = '';
+    panel.style.display = 'none';
+    return;
+  }
+
+  const matched = records.filter(r => {
+    let tId = cleanStr(r.transId);
+    let sName = cleanStr(r.sender);
+    let rName = cleanStr(r.receiver);
+    let tCity = cleanStr(r.targetCity);
+    return tId.includes(cleanKey) || sName.includes(cleanKey) || rName.includes(cleanKey) || tCity.includes(cleanKey);
+  });
+
+  if (matched.length === 0) {
+    panel.innerHTML = `<div style="color: #ff4d4d; font-size: 11px; text-align: center;">⚠ ရှာမတွေ့ပါ။ အခြားနာမည် (သို့) လွှဲနံပါတ်ဖြင့် ထပ်မံရှာကြည့်ပါ။</div>`;
+    panel.style.display = 'block';
+    return;
+  }
+
+  let html = `<div style="font-weight: bold; color: #ffd700; margin-bottom: 6px; border-bottom: 1px solid rgba(255,215,0,0.2); padding-bottom: 4px; display: flex; justify-content: space-between;">
+    <span>🔍 ရှာဖွေတွေ့ရှိမှု (${matched.length} ခု)</span>
+    <span style="font-size: 9px; color: #38bdf8; cursor: pointer;" onclick="clearGlobalSearch()">✖ ပိတ်မည်</span>
+  </div>`;
+
+  matched.forEach((r) => {
+    let amt = Number(r.ml) || Number(r.ac) || Number(r.homeExpense) || Number(r.expenseAmt) || Number(r.incomeAmt) || 0;
+    let amtColor = (Number(r.ac) || 0) > 0 ? '#ff4d4d' : '#00e676';
+    html += `
+      <div style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 6px; padding: 6px; margin-bottom: 6px; cursor: pointer;" onclick="openReceiptRecord('${r.key}')">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; color: #38bdf8; font-size: 11px;">
+          <span>📌 ${r.transId} (${r.dateTime?.dateStr || '-'})</span>
+          <span style="color: ${amtColor};">${amt.toLocaleString()} ကျပ်</span>
+        </div>
+        <div style="font-size: 10px; color: #f8fafc; margin-top: 2px;">
+          👤 လွှဲသူ: <b>${r.sender || '-'}</b> | 📦 ထုတ်သူ: <b>${r.receiver || '-'}</b> | 📍 မြို့: <b>${r.targetCity || '-'}</b>
+        </div>
+        ${r.transRemark ? `<div style="font-size: 9px; color: #94a3b8; margin-top: 1px;">မှတ်ချက်: ${r.transRemark}</div>` : ''}
+      </div>`;
+  });
+
+  panel.innerHTML = html;
+  panel.style.display = 'block';
+}
+
+function renderTable() { 
+  const tableBody = document.getElementById('historyTableBody'); 
+  tableBody.innerHTML = ""; 
+  
+  const startDate = document.getElementById('startDateFilter')?.value;
+  const endDate = document.getElementById('endDateFilter')?.value;
+  const searchKeyword = cleanStr(document.getElementById('globalSearchInput')?.value || "");
+
+  let customerBalances = {}, calculatedRecords = [], tempHome = initialHomeBalance; 
+  let selectedDateTotalIn = 0, selectedDateAcOut = 0, selectedDateMarluWithdraw = 0, selectedDateHomeExpense = 0; 
+  let targetIsoDate = getCurrentDateTime().isoDate; 
+
+  for (let i = records.length - 1; i >= 0; i--) { 
+    let r = records[i]; 
+    let advIn = 0, advOut = 0, adjLabel = ""; 
+    if (r.adjType === "payDebt") { 
+      advIn = r.adjAmount || 0; 
+      adjLabel = `ကြွေးဆပ် (+${advIn.toLocaleString()})`; 
+    } else if (r.adjType === "advIn") { 
+      advIn = r.adjAmount || 0; 
+      adjLabel = `ကြိုဝင် (+${advIn.toLocaleString()})`; 
+    } else if (r.adjType === "advInReturn") { 
+      advOut = r.adjAmount || 0; 
+      adjLabel = `<span class="text-yellow">ကြိုဝင်ပြန်ထုတ် (-${advOut.toLocaleString()})</span>`; 
+    } else if (r.adjType === "advOut") { 
+      advOut = r.adjAmount || 0; 
+      adjLabel = `<span class="text-yellow">ကြိုထုတ် (-${advOut.toLocaleString()})</span>`; 
+    } else if (r.adjType === "advOutReturn") { 
+      advIn = r.adjAmount || 0; 
+      adjLabel = `ကြိုထုတ်ပြန်ဆပ် (+${advIn.toLocaleString()})`; 
+    } 
+    let totalIn = (r.ml || 0) + advIn + (r.incomeAmt || 0); 
+    let totalOut = advOut + (r.expenseAmt || 0) + (r.marluAmt || 0) + (r.homeExpense || 0); 
+    tempHome += (totalIn + (r.fee || 0) - totalOut); 
+
+    if (r.dateTime?.isoDate === targetIsoDate) { 
+      selectedDateTotalIn += (totalIn + (r.fee || 0)); 
+      selectedDateAcOut += (r.ac || 0); 
+      selectedDateMarluWithdraw += (r.marluAmt || 0); 
+      selectedDateHomeExpense += (r.homeExpense || 0); 
+    } 
+    if (r.sender) { 
+      let nameKey = cleanStr(r.sender); 
+      let netTrans = (r.ac || 0) + advOut - advIn; 
+      customerBalances[nameKey] = (customerBalances[nameKey] || 0) + netTrans; 
+    } 
+    let currentCustNet = r.sender ? (customerBalances[cleanStr(r.sender)] || 0) : 0; 
+    calculatedRecords[i] = { 
+      ...r, originalIndex: r.key || i, advIn, advOut, adjLabel, 
+      calculatedHome: tempHome, calculatedPerson: currentCustNet 
+    }; 
+  } 
+
+  let grandTotalDebts = 0, grandTotalAdvances = 0; 
+  const finalBalances = calculateBalances(); 
+  for (let cust in finalBalances) { 
+    let b = finalBalances[cust].balance; 
+    if (b > 0) grandTotalDebts += b; 
+    if (b < 0) grandTotalAdvances += Math.abs(b); 
+  } 
+  baseHomeBalance = tempHome; 
+  if (records.length > 0) { 
+    document.getElementById('totalDebts').innerText = grandTotalDebts.toLocaleString(); 
+    document.getElementById('totalAdvances').innerText = grandTotalAdvances.toLocaleString(); 
+  } 
+  recalculateLiveHomeBalance(); 
+  document.getElementById('todayAcOut').innerText = selectedDateAcOut.toLocaleString(); 
+  document.getElementById('todayMarluWithdraw').innerText = selectedDateMarluWithdraw.toLocaleString(); 
+  document.getElementById('todayHomeExpense').innerText = selectedDateHomeExpense.toLocaleString(); 
+
+  let todayReportCount = records.filter(r => {
+    if (r.dateTime?.isoDate !== targetIsoDate) return false;
+    let cat = (r.transCategory || "").toUpperCase();
+    let tId = (r.transId || "").toUpperCase();
+    return cat === "MLAC" || tId.startsWith("MLAC");
+  }).length;
+
+  const countEl = document.getElementById('todayReportCount');
+  if (countEl) countEl.innerText = `${todayReportCount} ခု စာရင်းရှိသည်`;
+
+  currentDisplayList = calculatedRecords.filter(r => {
+    let rDate = r.dateTime?.isoDate;
+    if (!rDate) {
+      if (r.dateTime?.dateStr) {
+        let parts = r.dateTime.dateStr.split('/');
+        if (parts.length === 3) rDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+    }
+    if (!rDate) return false;
+
+    if (startDate && endDate) {
+      if (rDate < startDate || rDate > endDate) return false;
+    } else if (startDate) {
+      if (rDate < startDate) return false;
+    } else if (endDate) {
+      if (rDate > endDate) return false;
+    }
+
+    if (searchKeyword) {
+      let tId = cleanStr(r.transId);
+      let sName = cleanStr(r.sender);
+      let rName = cleanStr(r.receiver);
+      let tCity = cleanStr(r.targetCity);
+      if (!tId.includes(searchKeyword) && !sName.includes(searchKeyword) && !rName.includes(searchKeyword) && !tCity.includes(searchKeyword)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  currentDisplayList.forEach((r, idx) => { 
+    const newRow = document.createElement('tr'); 
+    newRow.className = "clickable-row"; 
+    newRow.onclick = (e) => { 
+      if (e.target.tagName !== 'BUTTON') openReceiptByIndex(idx); 
+    }; 
+    let personStatus = r.calculatedPerson > 0 ? `ကြွေး: ${r.calculatedPerson.toLocaleString()}` : (r.calculatedPerson < 0 ? `ပိုငွေ: ${Math.abs(r.calculatedPerson).toLocaleString()}` : "0"); 
+    if (!r.sender) personStatus = "-"; 
+    let extraNotes = []; 
+    if (r.adjLabel) extraNotes.push(r.adjLabel); 
+    if (r.marluAmt > 0) extraNotes.push(`<span class="text-out">မော်လူး: ${r.marluAmt.toLocaleString()}</span>`); 
+    if (r.homeExpense > 0) { 
+      let remarkStr = r.homeExpenseRemark ? ` (${r.homeExpenseRemark})` : ''; 
+      extraNotes.push(`<span class="text-out">အိမ်သုံးစရိတ်${remarkStr}: -${r.homeExpense.toLocaleString()}</span>`); 
+    } 
+    if (r.expenseAmt > 0) { 
+      let expRemarkStr = r.expenseRemark ? ` (${r.expenseRemark})` : ''; 
+      extraNotes.push(`<span class="text-out">${r.expenseName || 'သုံးစရိတ်'}${expRemarkStr}: -${r.expenseAmt.toLocaleString()}</span>`); 
+    } 
+    if (r.incomeAmt > 0) { 
+      let incRemarkStr = r.incomeRemark ? ` (${r.incomeRemark})` : ''; 
+      extraNotes.push(`<span class="text-in">${r.incomeName || 'ဝင်ငွေ'}${incRemarkStr}: +${r.incomeAmt.toLocaleString()}</span>`); 
+    } 
+    if (r.transRemark) extraNotes.push(`<span>${r.transRemark}</span>`); 
+
+    newRow.innerHTML = ` 
+      <td>${r.dateTime?.dateStr || '-'}<br><span style="opacity:0.7; font-size:8px;">${r.dateTime?.timeStr || ''}</span></td> 
+      <td><b>${r.transId}</b></td> 
+      <td><b>${r.sender || '-'}</b></td> 
+      <td>-</td> 
+      <td>${r.receiver || '-'}</td> 
+      <td><b>${r.targetCity || '-'}</b></td> 
+      <td>${r.idType || '-'} ${r.idNumber ? '(' + r.idNumber + ')' : ''}</td> 
+      <td class="text-in">${r.ml > 0 ? r.ml.toLocaleString() : '-'}</td> 
+      <td class="text-out">${r.ac > 0 ? r.ac.toLocaleString() : '-'}</td> 
+      <td>${extraNotes.length ? extraNotes.join('<br>') : '-'}</td> 
+      <td class="text-fee">${(r.fee||0).toLocaleString()}</td> 
+      <td>${personStatus}</td> 
+      <td class="text-home">${r.calculatedHome.toLocaleString()}</td> 
+      <td> 
+        <button class="btn-action btn-edit" onclick="editRecord('${r.originalIndex}')">ပြင်ဆင်ရန်</button> 
+        <button class="btn-action btn-delete" onclick="deleteRecord('${r.originalIndex}')">ဖျက်ရန်</button> 
+      </td>`; 
+    tableBody.appendChild(newRow); 
+  }); 
+} 
+
+function openReceiptByIndex(displayIdx) { 
+  if (!currentDisplayList.length) { 
+    currentDisplayList = records; 
+    displayIdx = currentDisplayList.findIndex(item => item.originalIndex === displayIdx || item === records[displayIdx]); 
+    if (displayIdx === -1) displayIdx = 0; 
+  } 
+  currentReceiptIndex = displayIdx; 
+  updateReceiptModalContent(); 
+  document.getElementById('receiptModal').style.display = 'flex'; 
+} 
+
+function openReceiptRecord(recordKey) {
+  let targetIdx = records.findIndex(r => r.key === recordKey);
+  if (targetIdx !== -1) {
+    currentDisplayList = records;
+    currentReceiptIndex = targetIdx;
+    updateReceiptModalContent();
+    document.getElementById('receiptModal').style.display = 'flex';
+  }
+}
+</script> 
+</body> 
+</html>
