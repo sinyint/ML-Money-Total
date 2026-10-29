@@ -712,6 +712,7 @@ tbody tr.clickable-row:hover { background-color: rgba(56, 189, 248, 0.06) !impor
             <option value="OTH">အခြား</option> 
             <option value="ADVOUT">ကြိုထုတ်ငွေ</option> 
             <option value="LOANPAY">ချေးငွေ ပြန်ဆပ်</option> 
+            <option value="MLWITH">မော်လူး ငွေထုတ်</option> 
           </select> 
           <input type="text" id="transId" class="form-control" placeholder="လွှဲနံပါတ် (ဥပမာ - MLAC100)" oninput="checkDuplicateTransIdLive()" style="background-color: rgba(255,255,255,0.03);"> 
         </div> 
@@ -801,7 +802,6 @@ tbody tr.clickable-row:hover { background-color: rgba(56, 189, 248, 0.06) !impor
           <option value="ပြဒါးခဲ ကောက်ငွေ">ပြဒါးခဲ ကောက်ငွေ</option> 
           <option value="ရွှေထည် ကောက်ငွေ">ရွှေထည် ကောက်ငွေ</option> 
           <option value="AC ဖြတ်စ">AC ဖြတ်စ</option> 
-          <option value="လွှဲခ ပြန်အမ်ပေးငွေ">လွှဲခ ပြန်အမ်ပေးငွေ</option> 
         </select> 
         <input type="text" id="expenseAmount" class="form-control" placeholder="သုံးစရိတ် ပမာဏ" inputmode="numeric" style="margin-bottom: 4px;" oninput="formatAmountInput(this); handleAmountInput('expenseAmount', this.value); handleAcInputAutoFee(); recalculateLiveHomeBalance(); scrollToNextField(this); closeCitySummaryBox();"> 
         <input type="text" id="expenseRemark" class="form-control" placeholder="မှတ်ချက်" oninput="closeCitySummaryBox();"> 
@@ -1166,7 +1166,6 @@ window.onload = function() {
     renderTable(); 
   }); 
 
-  // Firebase မှ အမြတ်စာရင်းထဲက သီးသန့်အဝင်ငွေ ဒေတာဆွဲထုတ်ရန်
   db.ref('settings/gold_extra_in').on('value', (snapshot) => {
     const val = snapshot.val();
     if (val) {
@@ -1253,7 +1252,6 @@ function calculateProfitAndLoss() {
     }
   });
 
-  // သီးသန့်ထည့်ထားသော အဝင်ငွေ (မန္တလေးရွှေရောင်းငွေ) ကို ဝင်ငွေထဲ ပေါင်းထည့်တွက်ချက်ခြင်း
   let extraInAmt = parseFormattedNumber(document.getElementById('goldExtraInAmount').value);
   totalIncome += extraInAmt;
   todayIncome += extraInAmt; 
@@ -1842,7 +1840,7 @@ function clearAllAuditLogs() {
 function onTransCategoryChange() { 
   const category = document.getElementById('transCategory').value; 
   
-  if (category === "MLAC" || category === "MLOTH") {
+  if (category === "MLAC" || category === "MLOTH" || category === "MLWITH") {
     const mlInput = document.getElementById('mlAmount');
     if (mlInput) scrollToNextField(mlInput);
   } else if (category === "ACOLD") {
@@ -2331,7 +2329,7 @@ function editRecord(originalIndex) {
   document.getElementById('incomeRemark').value = r.incomeRemark || ""; 
 
   const setCatField = (name, catId, noteId) => { 
-    const isStandard = ["ပြဒါးခဲ ကောက်ငွေ", "ရွှေထည် ကောက်ငွေ", "AC ဖြတ်စ", "လွှဲခ ပြန်အမ်ပေးငွေ", "C မှဝင်ငွေ"].includes(name); 
+    const isStandard = ["ပြဒါးခဲ ကောက်ငွေ", "ရွှေထည် ကောက်ငွေ", "AC ဖြတ်စ", "C မှဝင်ငွေ"].includes(name); 
     document.getElementById(catId).value = isStandard ? name : (name ? "အခြားဝင်ငွေ" : ""); 
     if (noteId) { 
       document.getElementById(noteId).style.display = (!isStandard && name) ? "block" : "none"; 
